@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "league.apps.LeagueConfig",
-    "django_admin_listfilter_dropdown",
+    "more_admin_filters",
 ]
 
 MIDDLEWARE = [

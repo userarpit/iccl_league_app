@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
 from .models import Team, Match, Player, Card, Goal
-from django_admin_listfilter_dropdown.filters import DropdownFilter
+from more_admin_filters import DropdownFilter
 
 admin.site.register(Team)
 # admin.site.register(Match)
