@@ -1,0 +1,41 @@
+/* Custom CSS for Django App - Replicating Streamlit's sidebar style */
+
+/* Basic body styling, if not handled by Tailwind */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Sidebar styling from original Streamlit app */
+/* In Django, this targets the 'aside' element as used in base.html */
+/* The background gradient is directly applied in base.html using Tailwind */
+
+/* Headings within sidebar, if needed */
+/* h1, h2 {
+    color: #FFD166;
+    text-align: center;
+    margin-bottom: 12px;
+} */
+
+/* Tab buttons styling - handled by Tailwind classes and {% if active_tab %} in base.html */
+/* .tab-btn {
+    background: #12324b;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    display: block;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+.tab-btn:hover {
+    background: #1a4267;
+    color: white;
+}
+.tab-btn.active {
+    background: #FFD166 !important;
+    color: #14213d !important;
+    font-weight: 700;
+} */
+
+
+/* You can add any other custom styles here */

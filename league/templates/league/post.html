@@ -1,0 +1,39 @@
+{% extends 'league/base.html' %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-700 mb-6">📸 Generate Instagram Post</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    
+    <!-- LEFT SIDE: Form -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <form method="get" action="{% url 'post_preview' %}">
+            {% csrf_token %}
+            
+            <!-- Post Type -->
+            <label class="block mb-2 font-semibold text-gray-700">Select Post Type:</label>
+            <select id="post_type" name="post_type" class="w-full border rounded-lg p-2 mb-4">
+                <option value="fixture" {% if selected_type == "fixture" %}selected{% endif %}>📅 Fixture</option>
+                <option value="result" {% if selected_type == "result" %}selected{% endif %}>⚽ Result</option>
+                <option value="table" {% if selected_type == "table" %}selected{% endif %}>📊 Table</option>
+                <option value="team_week" {% if selected_type == "team_week" %}selected{% endif %}>⭐ Team of the Week</option>
+            </select>
+            
+            <!-- Match Week -->
+            <label class="block mb-2 font-semibold text-gray-700">Match Week (1 - 22):</label>
+            <select name="match_week" class="w-full border rounded-lg p-2 mb-4" required>
+                {% for i in weeks %}
+                    <option value="{{ i }}" {% if i == selected_week %}selected{% endif %}>{{ i }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Submit button changed to PREVIEW -->
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                Preview
+            </button>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}
