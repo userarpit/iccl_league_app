@@ -36,7 +36,7 @@ DEBUG = True
 # settings.py
 # settings.py
 
-ALLOWED_HOSTS = ['.ngrok-free.app', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = [".ngrok-free.app", "localhost", "127.0.0.1"]
 
 # Application definition
 
@@ -147,7 +147,18 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Media files
 # Path where uploaded player images will be stored
 # A top-level 'media' directory is the standard practice
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # URL that handles the media served from MEDIA_ROOT
-MEDIA_URL = '/media/'
+MEDIA_URL = "/media/"
+
+# settings.py
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"  # Example for Gmail, use your provider
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "masterarpit@gmail.com"  # Your email address
+EMAIL_HOST_PASSWORD = (
+    "wfbh wbdm bvkc oimy"  # Your email password or app-specific password
+)

@@ -2,7 +2,10 @@
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Match, Team_Standing, Team
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from .models import Match, Team_Standing
 
 
 @receiver(post_save, sender=Match)
@@ -82,7 +85,7 @@ def update_team_standings(sender, instance, **kwargs):
             print(key, " - ", value)
             setattr(home_standing, key, value)
         home_standing.save()
-        
+
         # Calculate new standing values for the away team
         new_away_standing_data = get_and_calculate_new_standing_data(
             instance.away_team, instance.away_score, instance.home_score
@@ -107,3 +110,4 @@ def update_team_standings(sender, instance, **kwargs):
     )
     new_away_standing_data["match"] = instance  # Add the match field for creation
     Team_Standing.objects.create(**new_away_standing_data)
+

@@ -1,7 +1,10 @@
 from django.contrib import admin
+from django.core.mail import send_mail
 from django.contrib.auth.models import Group
 from .models import Team, Match, Player, Card, Goal
 from more_admin_filters import DropdownFilter
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 admin.site.register(Team)
 # admin.site.register(Match)
@@ -26,6 +29,7 @@ class CardInline(admin.TabularInline):
             formset.form.base_fields["player"].queryset = Player.objects.none()
         return formset
 
+
 class GoalInline(admin.TabularInline):
     model = Goal
     extra = 1
@@ -44,7 +48,8 @@ class GoalInline(admin.TabularInline):
             else:
                 kwargs["queryset"] = Player.objects.none()
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
-    
+
+
 @admin.register(Match)
 class MatchAdmin(admin.ModelAdmin):
     list_display = (
@@ -94,6 +99,46 @@ class MatchAdmin(admin.ModelAdmin):
 
     class Media:
         js = ("league/js/match_admin.js",)
+
+    def save_model(self, request, obj, form, change):
+        """
+        The main object needs to be saved first.
+        """
+        super().save_model(request, obj, form, change)
+
+    def save_related(self, request, form, formsets, change):
+        """
+        This method is called after the main object and its inlines are saved.
+        """
+        super().save_related(request, form, formsets, change)
+
+        # Now, all inlines (Goals, Cards) are guaranteed to be saved.
+        match = form.instance
+        self.send_match_details_email(match)
+
+    def send_match_details_email(self, match):
+        """
+        Sends an email with the details of the saved match.
+        """
+        subject = f"Match Details: {match.home_team.name} vs {match.away_team.name}"
+
+        # Render the email content from an HTML template
+        html_message = render_to_string(
+            "league/match_details_email.html", {"match": match}
+        )
+        plain_message = strip_tags(html_message)
+        from_email = "masterarpit@gmail.com"
+        to_email = [
+            "masterarpit10@gmail.com",
+        ]
+
+        try:
+            send_mail(
+                subject, plain_message, from_email, to_email, html_message=html_message
+            )
+            print("Email sent successfully!")
+        except Exception as e:
+            print(f"Error sending email: {e}")
 
 
 @admin.register(Player)
