@@ -403,7 +403,6 @@ def players_view(request):
     context['all_teams'] = all_teams
     context['players_for_team'] = players_for_team
     context['selected_team_id'] = int(selected_team_id) if selected_team_id else None
-    print(players_for_team[0].team)
 
     return render(request, 'league/players.html', context)
 
