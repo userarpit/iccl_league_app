@@ -6,8 +6,8 @@ class LeagueConfig(AppConfig):
 
     def ready(self):
         # Import models here to avoid circular imports during app loading
-        from .models import initialize_league_data
+        # from .models import initialize_league_data
         import league.signals
         # This will run once when the Django app starts
-        initialize_league_data()
+        # initialize_league_data()
         

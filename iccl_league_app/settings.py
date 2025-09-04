@@ -36,7 +36,7 @@ DEBUG = True
 # settings.py
 # settings.py
 
-ALLOWED_HOSTS = [".ngrok-free.app", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -92,8 +92,8 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",  # Use the MySQL engine
         "NAME": "iccl_league_db",  # The name of your MySQL database
-        "USER": "root",  # Your MySQL login username
-        "PASSWORD": "psra10051986",  # Your MySQL login password
+        "USER": "userarpit",  # Your MySQL login username
+        "PASSWORD": "Akstudy@10051986",  # Your MySQL login password
         "HOST": "localhost",  # Or the IP address/hostname of your MySQL server
         "PORT": "3306",  # Default MySQL port, or specify if different
         "OPTIONS": {
@@ -139,6 +139,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+STATIC_ROOT = '/home/ubuntu/iccl_league_app/staticfiles'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

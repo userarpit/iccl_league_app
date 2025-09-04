@@ -77,7 +77,7 @@ class Team(models.Model):
         return self.name
 
     class Meta:
-        managed = False
+        managed = True
         db_table = "league_team"
 
 
@@ -126,7 +126,7 @@ class Match(models.Model):
 
     class Meta:
         verbose_name_plural = "Matches"
-        managed = False
+        managed = True
         db_table = "league_match"
         ordering = ["week_number", "match_date", "match_time"]
 
@@ -222,7 +222,7 @@ class Team_Standing(models.Model):
         return self.name
 
     class Meta:
-        managed = False
+        managed = True
         db_table = "league_team_standing"
         ordering = ["-points", "name"]  # Order by points descending, then by name
 
@@ -241,7 +241,7 @@ class Card(models.Model):
         return f"{self.card_type} - {self.player} ({self.match})"
 
     class Meta:
-        managed = False
+        managed = True
 
 
 class Goal(models.Model):
