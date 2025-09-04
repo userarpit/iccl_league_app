@@ -92,8 +92,8 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",  # Use the MySQL engine
         "NAME": "iccl_league_db",  # The name of your MySQL database
-        "USER": "userarpit",  # Your MySQL login username
-        "PASSWORD": "Akstudy@10051986",  # Your MySQL login password
+        "USER": "root",  # Your MySQL login username
+        "PASSWORD": "psra10051986",  # Your MySQL login password
         "HOST": "localhost",  # Or the IP address/hostname of your MySQL server
         "PORT": "3306",  # Default MySQL port, or specify if different
         "OPTIONS": {
