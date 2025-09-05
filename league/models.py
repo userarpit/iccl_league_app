@@ -2,7 +2,6 @@ from django.db import models
 from datetime import date, timedelta
 import re
 from pathlib import Path
-from PyPDF2 import PdfFileReader
 
 # ========================
 # League Config (These could be in settings.py or a config file, but for simplicity,
@@ -129,78 +128,6 @@ class Match(models.Model):
         managed = True
         db_table = "league_match"
         ordering = ["week_number", "match_date", "match_time"]
-
-
-def initialize_league_data():
-    """
-    Initializes teams and generates fixtures.
-    This function should be called once, for example,
-    when the app starts or via a management command.
-    """
-    if Team.objects.exists():
-        return  # Already initialized
-
-    pdf_text = extract_text_from_pdf(PDF_PATH)
-    extracted_teams = extract_teams_from_text(pdf_text)
-    current_teams = (
-        extracted_teams
-        if extracted_teams and len(extracted_teams) == 12
-        else DEFAULT_TEAMS
-    )
-
-    # Create Teams
-    for team_name in current_teams:
-        Team.objects.create(name=team_name)
-
-    teams_list = list(Team.objects.all().order_by("id"))  # Ensure consistent order
-
-    def generate_round_robin(teams_for_round_robin):
-        teams_copy = list(teams_for_round_robin)  # Convert QuerySet to list
-        n = len(teams_copy)
-        weeks = n - 1
-        fixtures_round = {}
-        for w in range(1, weeks + 1):
-            week_matches = []
-            for i in range(n // 2):
-                home = teams_copy[i]
-                away = teams_copy[n - 1 - i]
-                week_matches.append((home, away))
-            fixtures_round[w] = week_matches
-            teams_copy = [teams_copy[0]] + [teams_copy[-1]] + teams_copy[1:-1]
-        return fixtures_round
-
-    single_round = generate_round_robin(teams_list)
-    total_weeks_per_round = len(single_round)  # 11 for 12 teams
-
-    # First round
-    for w in range(1, total_weeks_per_round + 1):
-        week_date = LEAGUE_START + timedelta(weeks=w - 1)
-        for i, (home_obj, away_obj) in enumerate(single_round[w]):
-            match_time = MATCH_TIMES[i] if i < len(MATCH_TIMES) else ""
-            Match.objects.create(
-                week_number=w,
-                match_date=week_date,
-                home_team=home_obj,
-                away_team=away_obj,
-                match_time=match_time,
-            )
-
-    # Second (mirror) round
-    for w in range(total_weeks_per_round + 1, 2 * total_weeks_per_round + 1):
-        mirror_idx = w - total_weeks_per_round
-        week_date = LEAGUE_START + timedelta(weeks=w - 1)
-        for i, (away_obj, home_obj) in enumerate(
-            single_round[mirror_idx]
-        ):  # Swapped for mirror
-            match_time = MATCH_TIMES[i] if i < len(MATCH_TIMES) else ""
-            Match.objects.create(
-                week_number=w,
-                match_date=week_date,
-                home_team=home_obj,
-                away_team=away_obj,
-                match_time=match_time,
-            )
-
 
 # Call this function from an AppConfig ready method or a management command
 # We'll set this up in apps.py to run on app readiness.
