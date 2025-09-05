@@ -20,3 +20,6 @@ env/
 
 # oracle file notes (not to track)
 notes to connect to oracle cloud infrastructure.txt
+
+# Ignore Django settings file with local configurations
+iccl_league_app/settings.py
