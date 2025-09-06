@@ -45,9 +45,9 @@ class Migration(migrations.Migration):
                 ('home_score', models.IntegerField(blank=True, null=True)),
                 ('away_score', models.IntegerField(blank=True, null=True)),
                 ('is_played', models.BooleanField(default=False)),
-                ('mom', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='mom_awards', to='league.player')),
                 ('away_team', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='away_matches', to='league.team')),
                 ('home_team', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='home_matches', to='league.team')),
+                ('mom', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='mom_awards', to='league.player')),
             ],
             options={
                 'verbose_name_plural': 'Matches',
