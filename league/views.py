@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Q
 from .models import Team_Standing, Match, LEAGUE_START, VENUE, Card, Goal, Team, Player
 from datetime import timedelta
 import pandas as pd  # For the league table
@@ -75,9 +75,14 @@ def result_view(request):
 
     # Retrieve match results for the selected week,
     # and use select_related() to pre-fetch the related M.O.M. player
-    results_for_week = Match.objects.filter(
-        week_number=selected_week_number, is_played=True
-    ).select_related('mom').prefetch_related('goals', 'cards').order_by("match_date", "match_time")
+    results_for_week = (
+        Match.objects.filter(
+            Q(week_number=selected_week_number) & (Q(is_played=True) | Q(is_walkover=True))
+        )
+        .select_related("mom")
+        .prefetch_related("goals", "cards")
+        .order_by("match_date", "match_time")
+    )
 
     if results_for_week.exists():
         first_match_of_week = results_for_week.first()
@@ -121,10 +126,9 @@ def table_view(request):
             selected_week = 1
 
     # Fetch data for the selected match week
-    standings_data = (
-        Team_Standing.objects.filter(matches_played=selected_week)
-        .order_by("-points", "-goal_difference", "-goals_for")
-    )
+    standings_data = Team_Standing.objects.filter(
+        matches_played=selected_week
+    ).order_by("-points", "-goal_difference", "-goals_for")
 
     # Convert queryset to DataFrame
     df = pd.DataFrame(
@@ -349,89 +353,95 @@ def post_preview(request):
 
     return render(request, "league/post_preview.html", context)
 
+
 def stats_view(request):
     active_tab = "Stats"
     context = get_base_context(active_tab)
-    
+
     # Top Goal Scorers
-    top_scorers = Goal.objects.values(
-        'player__name', 'player__team__name'
-    ).annotate(
-        total_goals=Sum('goals')
-    ).order_by('-total_goals')
-    
+    top_scorers = (
+        Goal.objects.values("player__name", "player__team__name")
+        .annotate(total_goals=Sum("goals"))
+        .order_by("-total_goals")
+    )
+
     # Yellow Cards
-    yellow_cards = Card.objects.filter(
-        card_type='YELLOW'
-    ).values(
-        'player__name', 'player__team__name'
-    ).annotate(
-        total_yellows=Count('id')
-    ).order_by('-total_yellows')
-    
+    yellow_cards = (
+        Card.objects.filter(card_type="YELLOW")
+        .values("player__name", "player__team__name")
+        .annotate(total_yellows=Count("id"))
+        .order_by("-total_yellows")
+    )
+
     # Red Cards
-    red_cards = Card.objects.filter(
-        card_type='RED'
-    ).values(
-        'player__name', 'player__team__name'
-    ).annotate(
-        total_reds=Count('id')
-    ).order_by('-total_reds')
-    
-    context['top_scorers'] = top_scorers
-    context['yellow_cards'] = yellow_cards
-    context['red_cards'] = red_cards
-    
-    return render(request, 'league/stats.html', context)
-    
+    red_cards = (
+        Card.objects.filter(card_type="RED")
+        .values("player__name", "player__team__name")
+        .annotate(total_reds=Count("id"))
+        .order_by("-total_reds")
+    )
+
+    context["top_scorers"] = top_scorers
+    context["yellow_cards"] = yellow_cards
+    context["red_cards"] = red_cards
+
+    return render(request, "league/stats.html", context)
+
+
 def players_view(request):
     active_tab = "Players"
     context = get_base_context(active_tab)
 
     # Fetch all teams for the dropdown
-    all_teams = Team.objects.all().order_by('name')
+    all_teams = Team.objects.all().order_by("name")
 
     # Get the selected team ID from the URL parameter, default to the first team
-    selected_team_id = request.GET.get('team_id')
+    selected_team_id = request.GET.get("team_id")
     if not selected_team_id and all_teams.exists():
         selected_team_id = all_teams.first().id
 
     # Fetch players for the selected team
     players_for_team = []
     if selected_team_id:
-        players_for_team = Player.objects.filter(team_id=selected_team_id).order_by('name')
+        players_for_team = Player.objects.filter(team_id=selected_team_id).order_by(
+            "name"
+        )
 
-    context['all_teams'] = all_teams
-    context['players_for_team'] = players_for_team
-    context['selected_team_id'] = int(selected_team_id) if selected_team_id else None
+    context["all_teams"] = all_teams
+    context["players_for_team"] = players_for_team
+    context["selected_team_id"] = int(selected_team_id) if selected_team_id else None
 
-    return render(request, 'league/players.html', context)
+    return render(request, "league/players.html", context)
 
 
 def player_profile_view(request, player_id):
     active_tab = "Players"
-    
+
     # Get the common context first
     context = get_base_context(active_tab)
 
     # Now get the player-specific data
     player = get_object_or_404(Player, id=player_id)
-    
+
     # Fetch total goals for the player
-    total_goals = Goal.objects.filter(player=player).aggregate(Sum('goals'))['goals__sum'] or 0
-    
+    total_goals = (
+        Goal.objects.filter(player=player).aggregate(Sum("goals"))["goals__sum"] or 0
+    )
+
     # Fetch all goals scored by the player
-    goals = Goal.objects.filter(player=player).order_by('match__match_date')
-    
+    goals = Goal.objects.filter(player=player).order_by("match__match_date")
+
     # Fetch all cards for the player
-    cards = Card.objects.filter(player=player).order_by('match__match_date')
-    
+    cards = Card.objects.filter(player=player).order_by("match__match_date")
+
     # Add the player-specific data to the context
-    context.update({
-        'player': player,
-        'total_goals': total_goals,
-        'goals': goals,
-        'cards': cards,
-    })
-    
-    return render(request, 'league/player_profile.html', context)
+    context.update(
+        {
+            "player": player,
+            "total_goals": total_goals,
+            "goals": goals,
+            "cards": cards,
+        }
+    )
+
+    return render(request, "league/player_profile.html", context)

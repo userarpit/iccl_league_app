@@ -109,6 +109,14 @@ class Match(models.Model):
     home_score = models.IntegerField(blank=True, null=True)
     away_score = models.IntegerField(blank=True, null=True)
     is_played = models.BooleanField(default=False)
+    is_walkover = models.BooleanField(default=False)
+    walkover_winner = models.ForeignKey(
+        Team,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="walkover_wins",
+    )
 
     mom = models.ForeignKey(
         Player,

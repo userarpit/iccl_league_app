@@ -29,9 +29,9 @@
                 {% endif %}
                 
                 {% comment %} The added conditional logic starts here {% endcomment %}
-                {% if selected_week_number == 1 and match.match_time == '09:00 PM' and match.home_team.name == 'Cell Kraft FC (CR7)' and match.away_team.name == 'Bon Bon FC (Supa)' %}
+                {% if match.is_walkover %}
                     <p class="text-sm text-red-500 font-semibold mt-2">
-                        Walkover to Bon Bon FC (Supa)
+                        Walkover to {{ match.walkover_winner.name }}
                     </p>
                 {% else %}
                     <form action="{% url 'update_result' %}" method="post" class="mt-4 flex items-center justify-center space-x-2">

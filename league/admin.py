@@ -59,6 +59,8 @@ class MatchAdmin(admin.ModelAdmin):
         "home_team",
         "away_team",
         "is_played",
+        "is_walkover",
+        "walkover_winner",
     )
 
     readonly_fields = ("match_date", "match_time", "home_team", "away_team")
@@ -70,6 +72,8 @@ class MatchAdmin(admin.ModelAdmin):
             "home_team",
             "away_team",
             "is_played",
+            "is_walkover",
+            "walkover_winner",
             "home_score",
             "away_score",
             "mom",
@@ -80,6 +84,7 @@ class MatchAdmin(admin.ModelAdmin):
     list_filter = (
         ("week_number", DropdownFilter),  # 👈 dropdown filter instead of list
         "is_played",
+        "is_walkover",
     )
     search_fields = ("home_team__name", "away_team__name")
 
@@ -95,6 +100,18 @@ class MatchAdmin(admin.ModelAdmin):
             else:
                 # If creating a new match (no object yet), show empty queryset
                 kwargs["queryset"] = Player.objects.none()
+
+        # Filter for Walkover Winner
+        if db_field.name == "walkover_winner":
+            match_id = request.resolver_match.kwargs.get("object_id")
+            if match_id:
+                match = Match.objects.get(pk=match_id)
+                kwargs["queryset"] = Team.objects.filter(
+                    id__in=[match.home_team.id, match.away_team.id]
+                )
+            else:
+                kwargs["queryset"] = Team.objects.none()
+
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     class Media:
