@@ -134,7 +134,7 @@ class Match(models.Model):
 
 
 class Team_Standing(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     matches_played = models.IntegerField(default=0)  # MP
     wins = models.IntegerField(default=0)  # W
     draws = models.IntegerField(default=0)  # D
