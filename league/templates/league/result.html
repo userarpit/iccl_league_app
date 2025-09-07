@@ -48,6 +48,9 @@
                         <p class="text-sm text-yellow-500 font-semibold mt-2">
                             🏆 Man of the Match: {{ match.mom.name }}
                         </p>
+                        {% if match.mom.image %}
+                            <img src="{{ match.mom.image.url }}" alt="Man of the Match: {{ match.mom.name }}" class="w-24 h-24 rounded-full object-cover mt-2">
+                        {% endif %}
                     {% endif %}
                 {% endif %}
                 {% comment %} The added conditional logic ends here {% endcomment %}

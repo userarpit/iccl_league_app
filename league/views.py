@@ -358,7 +358,7 @@ def stats_view(request):
         'player__name', 'player__team__name'
     ).annotate(
         total_goals=Sum('goals')
-    ).order_by('-total_goals')[:10]
+    ).order_by('-total_goals')
     
     # Yellow Cards
     yellow_cards = Card.objects.filter(
@@ -367,7 +367,7 @@ def stats_view(request):
         'player__name', 'player__team__name'
     ).annotate(
         total_yellows=Count('id')
-    ).order_by('-total_yellows')[:10]
+    ).order_by('-total_yellows')
     
     # Red Cards
     red_cards = Card.objects.filter(
@@ -376,7 +376,7 @@ def stats_view(request):
         'player__name', 'player__team__name'
     ).annotate(
         total_reds=Count('id')
-    ).order_by('-total_reds')[:10]
+    ).order_by('-total_reds')
     
     context['top_scorers'] = top_scorers
     context['yellow_cards'] = yellow_cards
