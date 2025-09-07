@@ -22,6 +22,6 @@ env/
 notes to connect to AWS.txt
 
 # Ignore Django settings file with local configurations
-# iccl_league_app/settings.py
+iccl_league_app/settings.py
 
 Deploy a Django web app with Nginx to Amazon EC2.mp4

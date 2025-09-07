@@ -28,62 +28,65 @@
                     <p class="text-blue-500">⏰ {{ match.match_time }}</p>
                 {% endif %}
                 
-                
-
-
-                <form action="{% url 'update_result' %}" method="post" class="mt-4 flex items-center justify-center space-x-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="match_id" value="{{ match.id }}">
-                    <input type="hidden" name="current_week" value="{{ selected_week_number }}">
-                    <input type="number" name="home_score" value="{{ match.home_score|default_if_none:'' }}"
-                           class="w-16 p-1 border border-gray-300 rounded-md text-center" placeholder="H">
-                    <span class="text-lg">-</span>
-                    <input type="number" name="away_score" value="{{ match.away_score|default_if_none:'' }}"
-                           class="w-16 p-1 border border-gray-300 rounded-md text-center" placeholder="A">
-                </form>
-                {% if match.mom %}
-                    <p class="text-sm text-yellow-500 font-semibold mt-2">
-                        🏆 Man of the Match: {{ match.mom.name }}
+                {% comment %} The added conditional logic starts here {% endcomment %}
+                {% if selected_week_number == 1 and match.match_time == '09:00 PM' and match.home_team.name == 'Cell Kraft FC (CR7)' and match.away_team.name == 'Bon Bon FC (Supa)' %}
+                    <p class="text-sm text-red-500 font-semibold mt-2">
+                        Walkover to Bon Bon FC (Supa)
                     </p>
+                {% else %}
+                    <form action="{% url 'update_result' %}" method="post" class="mt-4 flex items-center justify-center space-x-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="match_id" value="{{ match.id }}">
+                        <input type="hidden" name="current_week" value="{{ selected_week_number }}">
+                        <input type="number" name="home_score" value="{{ match.home_score|default_if_none:'' }}"
+                               class="w-16 p-1 border border-gray-300 rounded-md text-center" placeholder="H">
+                        <span class="text-lg">-</span>
+                        <input type="number" name="away_score" value="{{ match.away_score|default_if_none:'' }}"
+                               class="w-16 p-1 border border-gray-300 rounded-md text-center" placeholder="A">
+                    </form>
+                    {% if match.mom %}
+                        <p class="text-sm text-yellow-500 font-semibold mt-2">
+                            🏆 Man of the Match: {{ match.mom.name }}
+                        </p>
+                    {% endif %}
                 {% endif %}
-
-            {% if match.goals.all %}
-    <div class="flex justify-between mt-4 text-sm text-gray-600">
-        <div class="w-1/2">
-    <p class="font-semibold text-green-700">⚽ {{ match.home_team.name }}</p>
-            <ul class="list-disc list-inside text-left">
-                {% for goal in match.goals.all %}
-                    {% if goal.player.team == match.home_team or goal.own_goal %}
-                        <li>
-                            {{ goal.player.name }}
-                            ({{ goal.goals }})
-                            {% if goal.own_goal %} (Own Goal) {% endif %}
-                        </li>
-                    {% endif %}
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="w-1/2 pl-4">
-            <p class="font-semibold text-green-700">⚽ {{ match.away_team.name }}</p>
-            <ul class="list-disc list-inside text-left">
-                {% for goal in match.goals.all %}
-                    {% if goal.player.team == match.away_team or goal.own_goal %}
-                        <li>
-                            {{ goal.player.name }}
-                            ({{ goal.goals }})
-                            {% if goal.own_goal %} (Own Goal) {% endif %}
-                        </li>
-                    {% endif %}
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
-{% endif %}
-                 {% if match.cards.all %}
+                {% comment %} The added conditional logic ends here {% endcomment %}
+                
+                {% if match.goals.all %}
                     <div class="flex justify-between mt-4 text-sm text-gray-600">
                         <div class="w-1/2">
-
+                            <p class="font-semibold text-green-700">⚽ {{ match.home_team.name }}</p>
+                            <ul class="list-disc list-inside text-left">
+                                {% for goal in match.goals.all %}
+                                    {% if goal.player.team == match.home_team or goal.own_goal %}
+                                        <li>
+                                            {{ goal.player.name }}
+                                            ({{ goal.goals }})
+                                            {% if goal.own_goal %} (Own Goal) {% endif %}
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="w-1/2 pl-4">
+                            <p class="font-semibold text-green-700">⚽ {{ match.away_team.name }}</p>
+                            <ul class="list-disc list-inside text-left">
+                                {% for goal in match.goals.all %}
+                                    {% if goal.player.team == match.away_team or goal.own_goal %}
+                                        <li>
+                                            {{ goal.player.name }}
+                                            ({{ goal.goals }})
+                                            {% if goal.own_goal %} (Own Goal) {% endif %}
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if match.cards.all %}
+                    <div class="flex justify-between mt-4 text-sm text-gray-600">
+                        <div class="w-1/2">
                             <ul class="list-disc list-inside text-left">
                                 {% for card in match.cards.all %}
                                     {% if card.player.team == match.home_team %}
@@ -99,9 +102,7 @@
                                 {% endfor %}
                             </ul>
                         </div>
-
                         <div class="w-1/2 pl-4">
-
                             <ul class="list-disc list-inside text-left">
                                 {% for card in match.cards.all %}
                                     {% if card.player.team == match.away_team %}
@@ -119,9 +120,6 @@
                         </div>
                     </div>
                 {% endif %}
-
-
-
             </div>
         {% endfor %}
     {% else %}

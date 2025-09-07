@@ -90,7 +90,7 @@ class Migration(migrations.Migration):
             name='Team_Standing',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, unique=True)),
+                ('name', models.CharField(max_length=100)),
                 ('matches_played', models.IntegerField(default=0)),
                 ('wins', models.IntegerField(default=0)),
                 ('draws', models.IntegerField(default=0)),
