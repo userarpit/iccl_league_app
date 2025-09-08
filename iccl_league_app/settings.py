@@ -45,7 +45,7 @@ DEBUG = os.getenv("DJANGO_DEBUG") == "True"
 # settings.py
 # settings.py
 
-ALLOWED_HOSTS = ["127.0.0.1", "https://iccl-league-app.onrender.com", "phonotypically-unchanneled-sommer.ngrok-free.app"]
+ALLOWED_HOSTS = ["127.0.0.1", "iccl-league-app.onrender.com", "phonotypically-unchanneled-sommer.ngrok-free.app"]
 
 # Application definition
 
