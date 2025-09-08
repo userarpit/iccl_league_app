@@ -28,7 +28,6 @@
                     <p class="text-blue-500">⏰ {{ match.match_time }}</p>
                 {% endif %}
                 
-                {% comment %} The added conditional logic starts here {% endcomment %}
                 {% if match.is_walkover %}
                     <p class="text-sm text-red-500 font-semibold mt-2">
                         Walkover to {{ match.walkover_winner.name }}
@@ -53,7 +52,6 @@
                         {% endif %}
                     {% endif %}
                 {% endif %}
-                {% comment %} The added conditional logic ends here {% endcomment %}
                 
                 {% if match.goals.all %}
                     <div class="flex justify-between mt-4 text-sm text-gray-600">
@@ -61,11 +59,16 @@
                             <p class="font-semibold text-green-700">⚽ {{ match.home_team.name }}</p>
                             <ul class="list-disc list-inside text-left">
                                 {% for goal in match.goals.all %}
-                                    {% if goal.player.team == match.home_team or goal.own_goal %}
+                                    {% if goal.player.team == match.home_team and not goal.own_goal %}
                                         <li>
                                             {{ goal.player.name }}
                                             ({{ goal.goals }})
-                                            {% if goal.own_goal %} (Own Goal) {% endif %}
+                                        </li>
+                                    {% elif goal.own_goal and goal.player.team == match.away_team %}
+                                        <li>
+                                            {{ goal.player.name }}
+                                            ({{ goal.goals }})
+                                            (Own Goal)
                                         </li>
                                     {% endif %}
                                 {% endfor %}
@@ -75,11 +78,16 @@
                             <p class="font-semibold text-green-700">⚽ {{ match.away_team.name }}</p>
                             <ul class="list-disc list-inside text-left">
                                 {% for goal in match.goals.all %}
-                                    {% if goal.player.team == match.away_team or goal.own_goal %}
+                                    {% if goal.player.team == match.away_team and not goal.own_goal %}
                                         <li>
                                             {{ goal.player.name }}
                                             ({{ goal.goals }})
-                                            {% if goal.own_goal %} (Own Goal) {% endif %}
+                                        </li>
+                                    {% elif goal.own_goal and goal.player.team == match.home_team %}
+                                        <li>
+                                            {{ goal.player.name }}
+                                            ({{ goal.goals }})
+                                            (Own Goal)
                                         </li>
                                     {% endif %}
                                 {% endfor %}

@@ -1,10 +1,11 @@
 from django.contrib import admin
 from django.core.mail import send_mail
 from django.contrib.auth.models import Group
-from .models import Team, Match, Player, Card, Goal
+from .models import Team, Match, Player, Card, Goal, Team_Standing
 from more_admin_filters import DropdownFilter
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from django.db.models import Q
 
 admin.site.register(Team)
 # admin.site.register(Match)
@@ -131,7 +132,15 @@ class MatchAdmin(admin.ModelAdmin):
 
         # Now, all inlines (Goals, Cards) are guaranteed to be saved.
         match = form.instance
-        self.send_match_details_email(match)
+        
+        
+        # Now, call the signal logic from here.
+        # We need to manually call the post_save logic here.
+        if match.is_played or match.is_walkover:
+            _update_or_create_standing(match)
+            _cascade_standing_updates(match.home_team, match.week_number)
+            _cascade_standing_updates(match.away_team, match.week_number)
+            self.send_match_details_email(match)
 
     def send_match_details_email(self, match):
         """
@@ -173,3 +182,84 @@ class PlayerAdmin(admin.ModelAdmin):
 
 
 admin.site.unregister(Group)
+
+# --- Signal-like functions moved here for use in save_related ---
+def _update_or_create_standing(match_instance):
+    teams = [match_instance.home_team, match_instance.away_team]
+
+    for team in teams:
+        standing_entry = Team_Standing.objects.filter(
+            match=match_instance, name=team
+        ).first()
+
+        previous_standing = Team_Standing.objects.filter(
+            name=team,
+            matches_played=(match_instance.week_number - 1)
+        ).order_by('-id').first()
+
+        new_data = _calculate_standing_data(match_instance, team, previous_standing)
+        
+        if standing_entry:
+            for key, value in new_data.items():
+                setattr(standing_entry, key, value)
+            standing_entry.save()
+        else:
+            Team_Standing.objects.create(
+                name=team,
+                match=match_instance,
+                **new_data
+            )
+
+
+def _cascade_standing_updates(team, start_week):
+    subsequent_matches = Match.objects.filter(
+        Q(home_team=team) | Q(away_team=team),
+        week_number__gte=start_week,
+        is_played=True,
+    ).order_by('week_number', 'match_date', 'match_time')
+
+    for match in subsequent_matches:
+        _update_or_create_standing(match)
+
+
+def _calculate_standing_data(match, team, previous_standing):
+    goals_for = match.home_score if team == match.home_team else match.away_score
+    goals_against = match.away_score if team == match.home_team else match.home_score
+    
+    wins, draws, losses, points = 0, 0, 0, 0
+    if goals_for > goals_against:
+        wins = 1
+        points = 3
+    elif goals_for < goals_against:
+        losses = 1
+    else:
+        draws = 1
+        points = 1
+
+    base_data = {
+        "matches_played": 0, "wins": 0, "draws": 0, "losses": 0,
+        "goals_for": 0, "goals_against": 0, "goal_difference": 0, "points": 0
+    }
+
+    if previous_standing:
+        base_data = {
+            "matches_played": previous_standing.matches_played,
+            "wins": previous_standing.wins,
+            "draws": previous_standing.draws,
+            "losses": previous_standing.losses,
+            "goals_for": previous_standing.goals_for,
+            "goals_against": previous_standing.goals_against,
+            "goal_difference": previous_standing.goal_difference,
+            "points": previous_standing.points,
+        }
+
+    return {
+        "matches_played": base_data["matches_played"] + 1,
+        "wins": base_data["wins"] + wins,
+        "draws": base_data["draws"] + draws,
+        "losses": base_data["losses"] + losses,
+        "goals_for": base_data["goals_for"] + goals_for,
+        "goals_against": base_data["goals_against"] + goals_against,
+        "goal_difference": base_data["goal_difference"] + (goals_for - goals_against),
+        "points": base_data["points"] + points,
+    }
