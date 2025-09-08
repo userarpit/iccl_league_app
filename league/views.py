@@ -447,6 +447,9 @@ def player_profile_view(request, player_id):
 
     # Fetch all cards for the player
     cards = Card.objects.filter(player=player).order_by("match__match_date")
+    
+    # Fetch Man of the Match (MOM) details
+    moms = Match.objects.filter(mom=player).order_by("week_number")
 
     # Add the player-specific data to the context
     context.update(
@@ -455,6 +458,7 @@ def player_profile_view(request, player_id):
             "total_goals": total_goals,
             "goals": goals,
             "cards": cards,
+            "moms": moms,  # Add the MOM queryset
         }
     )
 
