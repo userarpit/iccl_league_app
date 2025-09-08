@@ -20,49 +20,49 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log('homeScoreRow:', homeScoreRow);
 
     function toggleFields() {
-        if (isPlayedCheckbox && isWalkoverCheckbox) {
-            // Check if both elements are present before proceeding
-            if (isPlayedCheckbox.checked) {
-                // If 'is_played' is checked
-                isWalkoverCheckbox.checked = false;
-                if (isWalkoverRow) isWalkoverRow.style.display = 'none';
-                if (walkoverWinnerRow) walkoverWinnerRow.style.display = 'none';
+        if (!isPlayedCheckbox || !isWalkoverCheckbox) return; // Ensure elements exist
 
-                // Show game-related fields
-                if (homeScoreRow) homeScoreRow.style.display = '';
-                if (awayScoreRow) awayScoreRow.style.display = '';
-                if (momRow) momRow.style.display = '';
-                if (cardInline) cardInline.style.display = '';
-                if (goalsInline) goalsInline.style.display = '';
-                
-            } else if (isWalkoverCheckbox.checked) {
-                // If 'is_walkover' is checked
-                isPlayedCheckbox.checked = false;
-                if (isPlayedRow) isPlayedRow.style.display = 'none';
-                if (walkoverWinnerRow) walkoverWinnerRow.style.display = '';
+        const isPlayedChecked = isPlayedCheckbox.checked;
+        const isWalkoverChecked = isWalkoverCheckbox.checked;
 
-                // Hide game-related fields
-                if (homeScoreRow) homeScoreRow.style.display = 'none';
-                if (awayScoreRow) awayScoreRow.style.display = 'none';
-                if (momRow) momRow.style.display = 'none';
-                if (cardInline) cardInline.style.display = 'none';
-                if (goalsInline) goalsInline.style.display = 'none';
-
-            } else {
-                // If neither is checked, show both and hide other fields
-                if (isPlayedRow) isPlayedRow.style.display = '';
-                if (isWalkoverRow) isWalkoverRow.style.display = '';
-                if (walkoverWinnerRow) walkoverWinnerRow.style.display = 'none';
-                
-                // Hide game-related fields
-                if (homeScoreRow) homeScoreRow.style.display = 'none';
-                if (awayScoreRow) awayScoreRow.style.display = 'none';
-                if (momRow) momRow.style.display = 'none';
-                if (cardInline) cardInline.style.display = 'none';
-                if (goalsInline) goalsInline.style.display = 'none';
-            }
+        // Reset visibility for all fields first
+        if (isPlayedRow) isPlayedRow.style.display = '';
+        if (isWalkoverRow) isWalkoverRow.style.display = '';
+        if (walkoverWinnerRow) walkoverWinnerRow.style.display = 'none';
+        if (homeScoreRow) homeScoreRow.style.display = 'none';
+        if (awayScoreRow) awayScoreRow.style.display = 'none';
+        if (momRow) momRow.style.display = 'none';
+        if (cardInline) cardInline.style.display = 'none';
+        if (goalsInline) goalsInline.style.display = 'none';
+        
+        // Logic for which fields to display
+        if (isPlayedChecked) {
+            if (isWalkoverRow) isWalkoverRow.style.display = 'none';
+            if (walkoverWinnerRow) walkoverWinnerRow.style.display = 'none';
+            if (homeScoreRow) homeScoreRow.style.display = '';
+            if (awayScoreRow) awayScoreRow.style.display = '';
+            if (momRow) momRow.style.display = '';
+            if (cardInline) cardInline.style.display = '';
+            if (goalsInline) goalsInline.style.display = '';
+        } else if (isWalkoverChecked) {
+            if (isPlayedRow) isPlayedRow.style.display = 'none';
+            if (walkoverWinnerRow) walkoverWinnerRow.style.display = '';
+            if (homeScoreRow) homeScoreRow.style.display = 'none';
+            if (awayScoreRow) awayScoreRow.style.display = 'none';
+            if (momRow) momRow.style.display = 'none';
+            if (cardInline) cardInline.style.display = 'none';
+            if (goalsInline) goalsInline.style.display = 'none';
+        } else {
+            // Neither is checked, all related fields are hidden
+            if (walkoverWinnerRow) walkoverWinnerRow.style.display = 'none';
+            if (homeScoreRow) homeScoreRow.style.display = 'none';
+            if (awayScoreRow) awayScoreRow.style.display = 'none';
+            if (momRow) momRow.style.display = 'none';
+            if (cardInline) cardInline.style.display = 'none';
+            if (goalsInline) goalsInline.style.display = 'none';
         }
     }
+
 
     // Initial run on page load
     toggleFields();
