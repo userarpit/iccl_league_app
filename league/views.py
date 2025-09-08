@@ -18,17 +18,28 @@ INSTAGRAM_ACCESS_TOKEN = os.getenv("INSTAGRAM_ACCESS_TOKEN")
 INSTAGRAM_BUSINESS_ID = os.getenv("INSTAGRAM_BUSINESS_ID")
 
 
+from django.db.models import Min
+
+
 def get_week_labels():
-    """Generates dropdown labels for weeks."""
-    max_week = (
-        Match.objects.order_by("-week_number").first().week_number
-        if Match.objects.exists()
-        else 0
+    """Generates dropdown labels for weeks by fetching dates from the database."""
+    # Fetch all unique week numbers and their corresponding match dates
+    # We use Min('match_date') to get the date for each week, assuming all
+    # matches in a given week have the same date.
+    week_data = (
+        Match.objects.values("week_number")
+        .annotate(match_date=Min("match_date"))
+        .order_by("week_number")
     )
+
     week_labels = {}
-    for w in range(1, max_week + 1):
-        week_date = LEAGUE_START + timedelta(weeks=w - 1)
-        week_labels[w] = f"{w} - {week_date.strftime('%A, %d %B %Y')}"
+    for data in week_data:
+        week_number = data["week_number"]
+        match_date = data["match_date"]
+        week_labels[week_number] = (
+            f"{week_number} - {match_date.strftime('%A, %d %B %Y')}"
+        )
+
     return week_labels
 
 
