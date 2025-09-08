@@ -33,16 +33,7 @@
                         Walkover to {{ match.walkover_winner.name }}
                     </p>
                 {% else %}
-                    <form action="{% url 'update_result' %}" method="post" class="mt-4 flex items-center justify-center space-x-2">
-                        {% csrf_token %}
-                        <input type="hidden" name="match_id" value="{{ match.id }}">
-                        <input type="hidden" name="current_week" value="{{ selected_week_number }}">
-                        <input type="number" name="home_score" value="{{ match.home_score|default_if_none:'' }}"
-                               class="w-16 p-1 border border-gray-300 rounded-md text-center" placeholder="H">
-                        <span class="text-lg">-</span>
-                        <input type="number" name="away_score" value="{{ match.away_score|default_if_none:'' }}"
-                               class="w-16 p-1 border border-gray-300 rounded-md text-center" placeholder="A">
-                    </form>
+
                     {% if match.mom %}
                         <p class="text-sm text-yellow-500 font-semibold mt-2">
                             🏆 Man of the Match: {{ match.mom.name }}
