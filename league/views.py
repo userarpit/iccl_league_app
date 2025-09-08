@@ -8,7 +8,9 @@ import requests
 from django.http import JsonResponse
 import os
 from datetime import timedelta
-from django.db.models import F
+
+from django.http import HttpResponse
+from django.db import connection
 
 
 # Instagram API config (set your env variables securely!)
@@ -77,7 +79,8 @@ def result_view(request):
     # and use select_related() to pre-fetch the related M.O.M. player
     results_for_week = (
         Match.objects.filter(
-            Q(week_number=selected_week_number) & (Q(is_played=True) | Q(is_walkover=True))
+            Q(week_number=selected_week_number)
+            & (Q(is_played=True) | Q(is_walkover=True))
         )
         .select_related("mom")
         .prefetch_related("goals", "cards")
@@ -445,3 +448,13 @@ def player_profile_view(request, player_id):
     )
 
     return render(request, "league/player_profile.html", context)
+
+
+def health_check(request):
+    try:
+        # Attempt to execute a simple database query
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        return HttpResponse("OK", status=200)
+    except Exception:
+        return HttpResponse("Database connection failed", status=500)
