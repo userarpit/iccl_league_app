@@ -82,8 +82,8 @@ def fixture_view(request):
     active_tab = "Fixture"
     context = get_base_context(active_tab, request)
 
-    selected_week_number = int(request.GET.get("week", 1))
-
+    selected_week_number = int(request.GET.get("week_number", 1))
+    print(selected_week_number)
     if context["selected_tournament"]:
         fixtures_for_week = Match.objects.filter(
             tournament=context["selected_tournament"], week_number=selected_week_number
@@ -123,7 +123,7 @@ def result_view(request):
     active_tab = "Result"
     context = get_base_context(active_tab, request)
 
-    selected_week_number = int(request.GET.get("week", 1))
+    selected_week_number = int(request.GET.get("week_number", 1))
 
     results_for_week = None
     if context["selected_tournament"]:
@@ -159,7 +159,7 @@ def result_view(request):
         )
 
     context["max_week_number"] = max_week_number.week_number if max_week_number else 0
-
+    print(context)
     return render(request, "league/result.html", context)
 
 

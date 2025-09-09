@@ -128,4 +128,18 @@
         <p class="text-gray-600 text-center">No results available for this week yet.</p>
     {% endif %}
 </div>
+<script>
+    function navigateToWeek(selectElement, baseUrl) {
+        const selectedWeek = selectElement.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        urlParams.set('week_number', selectedWeek);
+        
+        const newUrl = baseUrl + '?' + urlParams.toString();
+
+        console.log("Navigating to:", newUrl); 
+
+        window.location.href = newUrl;
+    }
+</script>
 {% endblock %}
