@@ -7,8 +7,27 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.db.models import Q
 
-admin.site.register(Team)
-# admin.site.register(Match)
+
+class TournamentAdminMixin:
+    def tournament_short_description(self, obj):
+        if hasattr(obj, "tournament"):
+            return obj.tournament.short_description
+        elif hasattr(obj, "team") and hasattr(obj.team, "tournament"):
+            return obj.team.tournament.short_description
+        return None
+
+    tournament_short_description.short_description = "Tournament"
+
+
+# Register the Team model and customize its admin view
+@admin.register(Team)
+class TeamAdmin(TournamentAdminMixin, admin.ModelAdmin):
+    # This list_display will show the team's name and the tournament's short description
+    # on the change list page.
+    list_display = ("name", "tournament_short_description")
+
+    # This list_filter adds a sidebar to filter teams by tournament.
+    list_filter = ("tournament__short_description",)
 
 
 class CardInline(admin.TabularInline):
@@ -52,7 +71,7 @@ class GoalInline(admin.TabularInline):
 
 
 @admin.register(Match)
-class MatchAdmin(admin.ModelAdmin):
+class MatchAdmin(TournamentAdminMixin, admin.ModelAdmin):
     list_display = (
         "week_number",
         "match_date",
@@ -83,10 +102,12 @@ class MatchAdmin(admin.ModelAdmin):
     inlines = [GoalInline, CardInline]
 
     list_filter = (
+        "tournament__short_description",
         ("week_number", DropdownFilter),  # 👈 dropdown filter instead of list
         "is_played",
         "is_walkover",
     )
+    
     search_fields = ("home_team__name", "away_team__name")
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -132,8 +153,7 @@ class MatchAdmin(admin.ModelAdmin):
 
         # Now, all inlines (Goals, Cards) are guaranteed to be saved.
         match = form.instance
-        
-        
+
         # Now, call the signal logic from here.
         # We need to manually call the post_save logic here.
         if match.is_played or match.is_walkover:
@@ -167,22 +187,31 @@ class MatchAdmin(admin.ModelAdmin):
             print(f"Error sending email: {e}")
 
 
+# Register the Player model
 @admin.register(Player)
-class PlayerAdmin(admin.ModelAdmin):
+class PlayerAdmin(TournamentAdminMixin, admin.ModelAdmin):
     """
     Admin configuration for the Player model.
     """
 
-    list_display = ("name", "team")  # Displays the player's name and team in the table
+    list_display = (
+        "name",
+        "team",
+        "tournament_short_description",
+    )  # Displays the player's name, team, and tournament
     search_fields = ("name",)  # Adds a search bar for the player's name
-    list_filter = ("team_id",)  # Creates a filter for the 'team' field
+    list_filter = (
+        "team__tournament__short_description",
+        "team",
+    )  # Filters by tournament short description
 
     # To order the list of players alphabetically by name (A-Z) by default.
     ordering = ("name",)
 
 
 admin.site.unregister(Group)
-admin.site.register(Tournament)
+# admin.site.register(Tournament)
+
 
 # --- Signal-like functions moved here for use in save_related ---
 def _update_or_create_standing(match_instance):
@@ -193,23 +222,22 @@ def _update_or_create_standing(match_instance):
             match=match_instance, name=team
         ).first()
 
-        previous_standing = Team_Standing.objects.filter(
-            name=team,
-            matches_played=(match_instance.week_number - 1)
-        ).order_by('-id').first()
+        previous_standing = (
+            Team_Standing.objects.filter(
+                name=team, matches_played=(match_instance.week_number - 1)
+            )
+            .order_by("-id")
+            .first()
+        )
 
         new_data = _calculate_standing_data(match_instance, team, previous_standing)
-        
+
         if standing_entry:
             for key, value in new_data.items():
                 setattr(standing_entry, key, value)
             standing_entry.save()
         else:
-            Team_Standing.objects.create(
-                name=team,
-                match=match_instance,
-                **new_data
-            )
+            Team_Standing.objects.create(name=team, match=match_instance, **new_data)
 
 
 def _cascade_standing_updates(team, start_week):
@@ -217,7 +245,7 @@ def _cascade_standing_updates(team, start_week):
         Q(home_team=team) | Q(away_team=team),
         week_number__gte=start_week,
         is_played=True,
-    ).order_by('week_number', 'match_date', 'match_time')
+    ).order_by("week_number", "match_date", "match_time")
 
     for match in subsequent_matches:
         _update_or_create_standing(match)
@@ -226,7 +254,7 @@ def _cascade_standing_updates(team, start_week):
 def _calculate_standing_data(match, team, previous_standing):
     goals_for = match.home_score if team == match.home_team else match.away_score
     goals_against = match.away_score if team == match.home_team else match.home_score
-    
+
     wins, draws, losses, points = 0, 0, 0, 0
     if goals_for > goals_against:
         wins = 1
@@ -238,8 +266,14 @@ def _calculate_standing_data(match, team, previous_standing):
         points = 1
 
     base_data = {
-        "matches_played": 0, "wins": 0, "draws": 0, "losses": 0,
-        "goals_for": 0, "goals_against": 0, "goal_difference": 0, "points": 0
+        "matches_played": 0,
+        "wins": 0,
+        "draws": 0,
+        "losses": 0,
+        "goals_for": 0,
+        "goals_against": 0,
+        "goal_difference": 0,
+        "points": 0,
     }
 
     if previous_standing:
@@ -264,3 +298,13 @@ def _calculate_standing_data(match, team, previous_standing):
         "goal_difference": base_data["goal_difference"] + (goals_for - goals_against),
         "points": base_data["points"] + points,
     }
+
+
+@admin.register(Tournament)
+class TournamentAdmin(admin.ModelAdmin):
+    list_display = (
+        "short_description",
+        "long_description",
+    )
+
+    readonly_fields = ("short_description", "long_description")
