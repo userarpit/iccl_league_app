@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.core.mail import send_mail
 from django.contrib.auth.models import Group
-from .models import Team, Match, Player, Card, Goal, Team_Standing
+from .models import Team, Match, Player, Card, Goal, Team_Standing, Tournament
 from more_admin_filters import DropdownFilter
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -182,6 +182,7 @@ class PlayerAdmin(admin.ModelAdmin):
 
 
 admin.site.unregister(Group)
+admin.site.register(Tournament)
 
 # --- Signal-like functions moved here for use in save_related ---
 def _update_or_create_standing(match_instance):

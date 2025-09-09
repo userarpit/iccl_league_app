@@ -9,6 +9,8 @@ def get_team_name(teams, team_id):
     """
     Returns the team name from a queryset of teams based on the team_id.
     """
+    print(teams)
+    print(team_id)
     try:
         team_id = int(team_id)
         return teams.get(id=team_id).name

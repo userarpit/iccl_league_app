@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.db.models import Count, Sum, Q
-from .models import Team_Standing, Match, LEAGUE_START, VENUE, Card, Goal, Team, Player
+from .models import Team_Standing, Match, Tournament, VENUE, Card, Goal, Team, Player
 from datetime import timedelta
 import pandas as pd  # For the league table
 import requests
@@ -21,13 +21,14 @@ INSTAGRAM_BUSINESS_ID = os.getenv("INSTAGRAM_BUSINESS_ID")
 from django.db.models import Min
 
 
-def get_week_labels():
-    """Generates dropdown labels for weeks by fetching dates from the database."""
-    # Fetch all unique week numbers and their corresponding match dates
-    # We use Min('match_date') to get the date for each week, assuming all
-    # matches in a given week have the same date.
+def get_week_labels(tournament_id):
+    """Generates dropdown labels for weeks for a specific tournament."""
+    if not tournament_id:
+        return {}
+
     week_data = (
-        Match.objects.values("week_number")
+        Match.objects.filter(tournament_id=tournament_id)
+        .values("week_number")
         .annotate(match_date=Min("match_date"))
         .order_by("week_number")
     )
@@ -43,62 +44,103 @@ def get_week_labels():
     return week_labels
 
 
-def get_base_context(active_tab):
+def get_tournament_details(request):
+    # Get the selected tournament from the request, default to the first one if none is specified.
+    tournament_id = request.GET.get("tournament")
+    tournaments = Tournament.objects.all().order_by("id")
+    selected_tournament = None
+
+    if tournament_id:
+        try:
+            selected_tournament = tournaments.get(id=tournament_id)
+        except Tournament.DoesNotExist:
+            # Handle case where the tournament_id is invalid, default to the first tournament.
+            if tournaments.exists():
+                selected_tournament = tournaments.first()
+    else:
+        # If no tournament_id is in the URL, select the first one by default.
+        if tournaments.exists():
+            selected_tournament = tournaments.first()
+
+    return selected_tournament, tournaments
+
+
+def get_base_context(active_tab, request):
     """Provides common context for all views."""
-    return {
-        "venue": VENUE,
-        "active_tab": active_tab,
-        "week_labels": get_week_labels(),
-    }
+    context = {}
+    context["selected_tournament"], context["tournaments"] = get_tournament_details(
+        request
+    )
+    context["venue"] = VENUE
+    context["active_tab"] = (active_tab,)
+    context["week_labels"] = get_week_labels(context["selected_tournament"])
+
+    return context
 
 
 def fixture_view(request):
     active_tab = "Fixture"
-    context = get_base_context(active_tab)
+    context = get_base_context(active_tab, request)
 
-    selected_week_number = int(request.GET.get("week", 1))  # Default to week 1
+    selected_week_number = int(request.GET.get("week", 1))
 
-    fixtures_for_week = Match.objects.filter(week_number=selected_week_number).order_by(
-        "match_date", "match_time"
-    )
+    if context["selected_tournament"]:
+        fixtures_for_week = Match.objects.filter(
+            tournament=context["selected_tournament"], week_number=selected_week_number
+        ).order_by("match_date", "match_time")
 
-    if fixtures_for_week.exists():
-        first_match_of_week = fixtures_for_week.first()
-        week_date = first_match_of_week.match_date
-        context["week_date_str"] = week_date.strftime("%A, %d %B %Y")
+        if fixtures_for_week.exists():
+            first_match_of_week = fixtures_for_week.first()
+            week_date = first_match_of_week.match_date
+            context["week_date_str"] = week_date.strftime("%A, %d %B %Y")
+        else:
+            context["week_date_str"] = "N/A"
+
+        context["selected_week_number"] = selected_week_number
+        context["fixtures_for_week"] = fixtures_for_week
+
+        # Filter the max_week_number query by the selected tournament
+        max_week_number_match = (
+            Match.objects.filter(tournament=context["selected_tournament"])
+            .order_by("-week_number")
+            .first()
+        )
+
+        context["max_week_number"] = (
+            max_week_number_match.week_number if max_week_number_match else 0
+        )
     else:
+        # No tournament selected, so no data to display
+        context["fixtures_for_week"] = []
         context["week_date_str"] = "N/A"
-
-    context["selected_week_number"] = selected_week_number
-    context["fixtures_for_week"] = fixtures_for_week
-    context["max_week_number"] = (
-        Match.objects.order_by("-week_number").first().week_number
-        if Match.objects.exists()
-        else 0
-    )
+        context["selected_week_number"] = 1
+        context["max_week_number"] = 0
 
     return render(request, "league/fixture.html", context)
 
 
 def result_view(request):
     active_tab = "Result"
-    context = get_base_context(active_tab)
+    context = get_base_context(active_tab, request)
 
     selected_week_number = int(request.GET.get("week", 1))
 
-    # Retrieve match results for the selected week,
-    # and use select_related() to pre-fetch the related M.O.M. player
-    results_for_week = (
-        Match.objects.filter(
-            Q(week_number=selected_week_number)
-            & (Q(is_played=True) | Q(is_walkover=True))
+    results_for_week = None
+    if context["selected_tournament"]:
+        # Retrieve match results for the selected week,
+        # and use select_related() to pre-fetch the related M.O.M. player
+        results_for_week = (
+            Match.objects.filter(
+                Q(tournament=context["selected_tournament"])
+                & Q(week_number=selected_week_number)
+                & (Q(is_played=True) | Q(is_walkover=True))
+            )
+            .select_related("mom")
+            .prefetch_related("goals", "cards")
+            .order_by("match_date", "match_time")
         )
-        .select_related("mom")
-        .prefetch_related("goals", "cards")
-        .order_by("match_date", "match_time")
-    )
 
-    if results_for_week.exists():
+    if results_for_week and results_for_week.exists():
         first_match_of_week = results_for_week.first()
         week_date = first_match_of_week.match_date
         context["week_date_str"] = week_date.strftime("%A, %d %B %Y")
@@ -106,23 +148,36 @@ def result_view(request):
         context["week_date_str"] = "N/A"
 
     context["selected_week_number"] = selected_week_number
-    context["results_for_week"] = results_for_week
-    context["max_week_number"] = (
-        Match.objects.order_by("-week_number").first().week_number
-        if Match.objects.exists()
-        else 0
-    )
+    context["results_for_week"] = results_for_week if results_for_week else []
+
+    max_week_number = None
+    if context["selected_tournament"]:
+        max_week_number = (
+            Match.objects.filter(tournament=context["selected_tournament"])
+            .order_by("-week_number")
+            .first()
+        )
+
+    context["max_week_number"] = max_week_number.week_number if max_week_number else 0
 
     return render(request, "league/result.html", context)
 
 
 def table_view(request):
     active_tab = "Table"
-    context = get_base_context(active_tab)
+    context = get_base_context(active_tab, request)
 
-    # Get all unique match weeks from the database
+    selected_tournament = context["selected_tournament"]
+    if not selected_tournament:
+        context["points_table_html"] = "<p>Please select a tournament.</p>"
+        context["match_weeks"] = []
+        context["selected_week"] = 1
+        return render(request, "league/table.html", context)
+
+    # Get all unique match weeks for the selected tournament
     match_weeks = (
-        Team_Standing.objects.values_list("matches_played", flat=True)
+        Team_Standing.objects.filter(tournament=selected_tournament)
+        .values_list("matches_played", flat=True)
         .distinct()
         .order_by("matches_played")
     )
@@ -133,15 +188,15 @@ def table_view(request):
     if selected_week and selected_week.isdigit():
         selected_week = int(selected_week)
     else:
-        # Default to the latest match week if none is specified
+        # Default to the latest match week for the selected tournament
         if match_weeks:
             selected_week = match_weeks.last()
         else:
             selected_week = 1
 
-    # Fetch data for the selected match week
+    # Fetch data for the selected match week and tournament
     standings_data = Team_Standing.objects.filter(
-        matches_played=selected_week
+        tournament=selected_tournament, matches_played=selected_week
     ).order_by("-points", "-goal_difference", "-goals_for")
 
     # Convert queryset to DataFrame
@@ -202,40 +257,8 @@ def table_view(request):
 
 def team_of_the_week_view(request):
     active_tab = "Team of the Week"
-    context = get_base_context(active_tab)
+    context = get_base_context(active_tab, request)
     return render(request, "league/team_of_the_week.html", context)
-
-
-def update_result_view(request):
-    if request.method == "POST":
-        match_id = request.POST.get("match_id")
-        home_score = request.POST.get("home_score")
-        away_score = request.POST.get("away_score")
-
-        try:
-            match = Match.objects.get(id=match_id)
-            match.home_score = int(home_score)
-            match.away_score = int(away_score)
-            match.is_played = True
-            match.save()
-
-            if match.home_score > match.away_score:
-                match.home_team.points += 3
-            elif match.away_score > match.home_score:
-                match.away_team.points += 3
-            else:
-                match.home_team.points += 1
-                match.away_team.points += 1
-
-            match.home_team.save()
-            match.away_team.save()
-
-        except Match.DoesNotExist:
-            pass
-        except ValueError:
-            pass
-
-    return result_view(request)
 
 
 # -------------------------------
@@ -249,7 +272,7 @@ def post_view(request):
     If ?ajax=1 is passed, it returns JSON preview data.
     """
     active_tab = "Post"
-    context = get_base_context(active_tab)
+    context = get_base_context(active_tab, request)
     weeks = range(1, 23)
 
     # Defaults
@@ -352,7 +375,7 @@ def submit_post(request):
 
 def post_preview(request):
     active_tab = "Preview"
-    context = get_base_context(active_tab)
+    context = get_base_context(active_tab, request)
 
     selected_week = request.GET.get("match_week")
 
@@ -370,30 +393,39 @@ def post_preview(request):
 
 def stats_view(request):
     active_tab = "Stats"
-    context = get_base_context(active_tab)
+    context = get_base_context(active_tab, request)
+    selected_tournament = context["selected_tournament"]
 
-    # Top Goal Scorers
-    top_scorers = (
-        Goal.objects.values("player__name", "player__team__name")
-        .annotate(total_goals=Sum("goals"))
-        .order_by("-total_goals")
-    )
+    if selected_tournament:
+        # Top Goal Scorers
+        top_scorers = (
+            Goal.objects.filter(match__tournament=selected_tournament)
+            .values("player__name", "player__team__name")
+            .annotate(total_goals=Sum("goals"))
+            .order_by("-total_goals")
+        )
 
-    # Yellow Cards
-    yellow_cards = (
-        Card.objects.filter(card_type="YELLOW")
-        .values("player__name", "player__team__name")
-        .annotate(total_yellows=Count("id"))
-        .order_by("-total_yellows")
-    )
+        # Yellow Cards
+        yellow_cards = (
+            Card.objects.filter(
+                card_type="YELLOW", match__tournament=selected_tournament
+            )
+            .values("player__name", "player__team__name")
+            .annotate(total_yellows=Count("id"))
+            .order_by("-total_yellows")
+        )
 
-    # Red Cards
-    red_cards = (
-        Card.objects.filter(card_type="RED")
-        .values("player__name", "player__team__name")
-        .annotate(total_reds=Count("id"))
-        .order_by("-total_reds")
-    )
+        # Red Cards
+        red_cards = (
+            Card.objects.filter(card_type="RED", match__tournament=selected_tournament)
+            .values("player__name", "player__team__name")
+            .annotate(total_reds=Count("id"))
+            .order_by("-total_reds")
+        )
+    else:
+        top_scorers = []
+        yellow_cards = []
+        red_cards = []
 
     context["top_scorers"] = top_scorers
     context["yellow_cards"] = yellow_cards
@@ -404,63 +436,107 @@ def stats_view(request):
 
 def players_view(request):
     active_tab = "Players"
-    context = get_base_context(active_tab)
+    context = get_base_context(active_tab, request)
+    selected_tournament = context["selected_tournament"]
 
-    # Fetch all teams for the dropdown
-    all_teams = Team.objects.all().order_by("name")
+    if selected_tournament:
+        all_teams = Team.objects.filter(tournament=selected_tournament).order_by("name")
+        selected_team_id_str = request.GET.get("team_id")
 
-    # Get the selected team ID from the URL parameter, default to the first team
-    selected_team_id = request.GET.get("team_id")
-    if not selected_team_id and all_teams.exists():
-        selected_team_id = all_teams.first().id
+        # Determine the selected team ID
+        selected_team_id = None
+        if selected_team_id_str:
+            try:
+                selected_team_id = int(selected_team_id_str)
+            except (ValueError, TypeError):
+                # If the provided value is not a valid integer, we treat it as if no ID was provided.
+                pass
 
-    # Fetch players for the selected team
-    players_for_team = []
-    if selected_team_id:
-        players_for_team = Player.objects.filter(team_id=selected_team_id).order_by(
-            "name"
-        )
+        # If no valid ID was provided (or the ID was invalid), default to the first team.
+        # This will be None if there are no teams for the selected tournament.
+        if selected_team_id is None and all_teams.exists():
+            selected_team_id = all_teams.first().id
 
-    context["all_teams"] = all_teams
-    context["players_for_team"] = players_for_team
-    context["selected_team_id"] = int(selected_team_id) if selected_team_id else None
+        # We explicitly set selected_team_id to 0 if it's still None to avoid TypeError in templates.
+        # The template filter must handle 0 as a valid "no team" state.
+        context["selected_team_id"] = selected_team_id if selected_team_id else 0
+
+        # Fetch players for the determined team ID.
+        players_for_team = []
+        if selected_team_id:
+            players_for_team = Player.objects.filter(
+                team_id=selected_team_id, team__tournament=selected_tournament
+            ).order_by("name")
+
+        context["all_teams"] = all_teams
+        context["players_for_team"] = players_for_team
+    else:
+        context["all_teams"] = []
+        context["players_for_team"] = []
+        context["selected_team_id"] = 0
 
     return render(request, "league/players.html", context)
 
 
 def player_profile_view(request, player_id):
     active_tab = "Players"
+    context = get_base_context(active_tab, request)
+    selected_tournament = context["selected_tournament"]
 
-    # Get the common context first
-    context = get_base_context(active_tab)
-
-    # Now get the player-specific data
     player = get_object_or_404(Player, id=player_id)
 
-    # Fetch total goals for the player
-    total_goals = (
-        Goal.objects.filter(player=player).aggregate(Sum("goals"))["goals__sum"] or 0
-    )
+    if selected_tournament:
+        # Check if the player belongs to the selected tournament
+        if player.team.tournament != selected_tournament:
+            # Handle the case where the player is not in the current tournament.
+            # You might want to redirect, show an error, or just return an empty profile.
+            # For now, we'll return an an empty profile page.
+            # return render(request, "league/players.html", context)
+            return redirect(f"/players/?tournament={selected_tournament.id}")
 
-    # Fetch all goals scored by the player
-    goals = Goal.objects.filter(player=player).order_by("match__match_date")
+        # Fetch total goals for the player in this tournament
+        total_goals = (
+            Goal.objects.filter(
+                player=player, match__tournament=selected_tournament
+            ).aggregate(Sum("goals"))["goals__sum"]
+            or 0
+        )
 
-    # Fetch all cards for the player
-    cards = Card.objects.filter(player=player).order_by("match__match_date")
-    
-    # Fetch Man of the Match (MOM) details
-    moms = Match.objects.filter(mom=player).order_by("week_number")
+        # Fetch all goals scored by the player in this tournament
+        goals = Goal.objects.filter(
+            player=player, match__tournament=selected_tournament
+        ).order_by("match__match_date")
 
-    # Add the player-specific data to the context
-    context.update(
-        {
-            "player": player,
-            "total_goals": total_goals,
-            "goals": goals,
-            "cards": cards,
-            "moms": moms,  # Add the MOM queryset
-        }
-    )
+        # Fetch all cards for the player in this tournament
+        cards = Card.objects.filter(
+            player=player, match__tournament=selected_tournament
+        ).order_by("match__match_date")
+
+        # Fetch Man of the Match (MOM) details for the player in this tournament
+        moms = Match.objects.filter(
+            mom=player, tournament=selected_tournament
+        ).order_by("week_number")
+
+        # Add the player-specific data to the context
+        context.update(
+            {
+                "player": player,
+                "total_goals": total_goals,
+                "goals": goals,
+                "cards": cards,
+                "moms": moms,  # Add the MOM queryset
+            }
+        )
+    else:
+        context.update(
+            {
+                "player": None,
+                "total_goals": 0,
+                "goals": [],
+                "cards": [],
+                "moms": [],
+            }
+        )
 
     return render(request, "league/player_profile.html", context)
 

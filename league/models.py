@@ -1,5 +1,5 @@
 from django.db import models
-from datetime import date, timedelta
+from datetime import date
 import re
 from pathlib import Path
 
@@ -68,9 +68,38 @@ DEFAULT_TEAMS = [
 ]
 
 
+class Tournament(models.Model):
+    """
+    A Django model to represent a tournament.
+    
+    Django automatically creates an 'id' primary key field for every model.
+    """
+    
+    # Django automatically adds an 'id' primary key field.
+
+    short_description = models.CharField(
+        max_length=255,
+        default="Untitled Tournament",  # Added a default value
+        help_text="A short description of the tournament."
+    )
+    
+    long_description = models.TextField(
+        default="No description provided.",  # Added a default value
+        help_text="A detailed, long description of the tournament."
+    )
+
+    def __str__(self):
+        """String for representing the Model object."""
+        # This will show a user-friendly representation in the admin interface
+        return f"Tournament ID: {self.id} - {self.short_description}"
+            
+    class Meta:
+        managed = True
+
+
 class Team(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    # Add other team stats if needed (wins, losses, draws, goals scored, etc.)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='teams', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -84,6 +113,7 @@ class Player(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     team = models.ForeignKey(Team, related_name="players", on_delete=models.CASCADE)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='players', null=True, blank=True)
     image = models.ImageField(upload_to="players/", null=True, blank=True)
 
     class Meta:
@@ -117,7 +147,6 @@ class Match(models.Model):
         blank=True,
         related_name="walkover_wins",
     )
-
     mom = models.ForeignKey(
         Player,
         on_delete=models.SET_NULL,
@@ -125,6 +154,7 @@ class Match(models.Model):
         blank=True,
         related_name="mom_awards",
     )
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='matches', null=True, blank=True)
 
     def __str__(self):
         return (
@@ -136,9 +166,6 @@ class Match(models.Model):
         managed = True
         db_table = "league_match"
         ordering = ["week_number", "match_date", "match_time"]
-
-# Call this function from an AppConfig ready method or a management command
-# We'll set this up in apps.py to run on app readiness.
 
 
 class Team_Standing(models.Model):
@@ -152,6 +179,7 @@ class Team_Standing(models.Model):
     goal_difference = models.IntegerField(default=0)  # GD
     points = models.IntegerField(default=0)
     match = models.ForeignKey(Match, on_delete=models.CASCADE, null=True, blank=True)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='standings', null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -171,6 +199,7 @@ class Card(models.Model):
     match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name="cards")
     player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name="cards")
     card_type = models.CharField(max_length=6, choices=CARD_TYPES)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='cards', null=True, blank=True)
 
     def __str__(self):
         return f"{self.card_type} - {self.player} ({self.match})"
@@ -184,6 +213,7 @@ class Goal(models.Model):
     player = models.ForeignKey("Player", on_delete=models.CASCADE)
     own_goal = models.BooleanField(default=False)  # flag if it’s an own goal
     goals = models.PositiveIntegerField(default=1)
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='goals', null=True, blank=True)
 
     def __str__(self):
         return (

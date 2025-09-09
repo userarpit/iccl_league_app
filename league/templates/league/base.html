@@ -25,49 +25,65 @@
             <h1 class="text-3xl font-bold text-yellow-300 text-center mb-8 hidden md:block">⚽ ICCL</h1>
              <nav>
                 <ul>
+                    <li class="mt-8">
+                        <label for="tournament-select" class="block text-gray-400 text-sm font-bold mb-2">
+                            Select Tournament:
+                        </label>
+                        <select id="tournament-select"
+                                onchange="navigateToTournament(this.value)"
+                                class="block w-full px-4 py-2 rounded-lg text-gray-900 bg-green-400 font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            {% for tournament in tournaments %}
+                                <option value="{{ tournament.id }}" {% if tournament.id == selected_tournament.id %}selected{% endif %}>
+                                    {{ tournament.short_description }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </li>
+                    <br>
                     <li class="mb-4">
-                        <a href="{% url 'fixtures' %}"
+                        <a href="{% url 'fixtures' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Fixture' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             📅 Fixture
                         </a>
                     </li>
                     <li class="mb-4">
-                        <a href="{% url 'results' %}"
+                        <a href="{% url 'results' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Result' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             ⚽ Result
                         </a>
                     </li>
                     <li class="mb-4">
-                        <a href="{% url 'table' %}"
+                        <a href="{% url 'table' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Table' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             📊 Table
                         </a>
                     </li>
                     <!-- <li class="mb-4">
-                        <a href="{% url 'post' %}"
+                        <a href="{% url 'post' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Post' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             📢 Post
                         </a>
                     </li> -->
                     <li class="mb-4">
-                        <a href="{% url 'stats' %}"
+                        <a href="{% url 'stats' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Stats' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             📈 Stats
                         </a>
                     </li>
                     <li class="mb-4">
-                        <a href="{% url 'players' %}"
+                        <a href="{% url 'players' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Players' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             👤 Players
                         </a>
                     </li>
+                    
                 </ul>
             </nav>
         </aside>
 
         <main class="flex-1 p-4 md:p-8 overflow-y-auto">
             <h1 class="text-2xl md:text-4xl font-extrabold text-gray-800 mb-8 flex items-center justify-between">
-                🏆 ICCL 4.0 - Indore City Champions League ({{ venue }})
+                🏆 {{selected_tournament.short_description}} - {{selected_tournament.long_description}} ({{ venue }})
                 <a href="{% url 'admin:index' %}"
                    class="inline-block px-4 py-2 rounded-lg text-sm md:text-lg hover:bg-blue-700 transition-colors duration-200">
                     ⚙️ Admin
@@ -86,12 +102,12 @@
         });
 
         // JavaScript for dropdown change
-        function navigateToWeek(selectElement, baseUrl) {
-            const selectedWeek = selectElement.value;
-            if (selectedWeek) {
-                window.location.href = `${baseUrl}?week=${selectedWeek}`;
-            }
+        function navigateToTournament(tournamentId) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tournament', tournamentId);
+            window.location.href = url.toString();
         }
+        
     </script>
 </body>
 </html>

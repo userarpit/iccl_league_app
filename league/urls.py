@@ -6,7 +6,6 @@ urlpatterns = [
     path('fixtures/', views.fixture_view, name='fixtures'),
     path('results/', views.result_view, name='results'),
     path('table/', views.table_view, name='table'),
-    path('update-result/', views.update_result_view, name='update_result'),
     path("post/", views.post_view, name="post"),
     path("stats/", views.stats_view, name="stats"),
     path("players/", views.players_view, name="players"),
