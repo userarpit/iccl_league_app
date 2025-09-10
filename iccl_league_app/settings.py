@@ -24,7 +24,13 @@ print(os.getenv("DATABASE_USER"))
 print(os.getenv("DATABASE_HOST"))
 print(os.getenv("DATABASE_PORT"))
 
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
 
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 # STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "league", "static"),  # Project-wide static files
@@ -58,6 +64,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "league.apps.LeagueConfig",
     "more_admin_filters",
+    'cloudinary_storage',
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -154,11 +162,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Media files
 # Path where uploaded player images will be stored
-# A top-level 'media' directory is the standard practice
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+# # A top-level 'media' directory is the standard practice
+# MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-# URL that handles the media served from MEDIA_ROOT
-MEDIA_URL = "/media/"
+# # URL that handles the media served from MEDIA_ROOT
+# MEDIA_URL = "/media/"
 
 # settings.py
 
@@ -172,3 +180,4 @@ EMAIL_HOST_PASSWORD = (
 )
 
 CSRF_TRUSTED_ORIGINS = ['https://phonotypically-unchanneled-sommer.ngrok-free.app']
+

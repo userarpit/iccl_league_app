@@ -2,6 +2,7 @@ from django.db import models
 from datetime import date
 import re
 from pathlib import Path
+from cloudinary.models import CloudinaryField
 
 # ========================
 # League Config (These could be in settings.py or a config file, but for simplicity,
@@ -114,7 +115,7 @@ class Player(models.Model):
     name = models.CharField(max_length=100)
     team = models.ForeignKey(Team, related_name="players", on_delete=models.CASCADE)
     tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='players', null=True, blank=True)
-    image = models.ImageField(upload_to="players/", null=True, blank=True)
+    image = CloudinaryField('player_images', null=True, blank=True)
 
     class Meta:
         managed = True
