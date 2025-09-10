@@ -23,6 +23,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("league.urls")),  # Include your app's URLs
+    path('tracking/', include('tracking.urls')),
 ]
 
 # Add this at the end to serve media files in development
