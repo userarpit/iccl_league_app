@@ -83,7 +83,7 @@ class MatchAdmin(TournamentAdminMixin, admin.ModelAdmin):
         "walkover_winner",
     )
 
-    readonly_fields = ("match_date", "match_time", "home_team", "away_team")
+    readonly_fields = ("match_date", "match_time")
 
     def get_fields(self, request, obj=None):
         return [
