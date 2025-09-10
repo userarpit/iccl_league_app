@@ -162,7 +162,6 @@ def result_view(request):
     print(context)
     return render(request, "league/result.html", context)
 
-
 def table_view(request):
     active_tab = "Table"
     context = get_base_context(active_tab, request)
@@ -217,9 +216,13 @@ def table_view(request):
     )
 
     if not df.empty:
+        # Add S.No. column and reorder
+        df['Position'] = range(1, len(df) + 1)
+        
         # Reorder and rename columns
         df = df[
             [
+                "Position",
                 "name",
                 "matches_played",
                 "wins",
