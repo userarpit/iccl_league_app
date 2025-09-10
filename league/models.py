@@ -10,7 +10,7 @@ from cloudinary.models import CloudinaryField
 # ========================
 LEAGUE_START = date(2025, 6, 29)  # First Sunday
 MATCH_TIMES = ["6:00 PM", "6:45 PM", "7:30 PM", "8:15 PM", "9:00 PM", "9:45 PM"]
-VENUE = "Dugout"
+VENUE = "Dugout Turf, Robot Square, Indore"
 PDF_PATH = Path(
     "/mnt/data/Fixtures - ICCL 4.0.pdf"
 )  # This path needs to be accessible by Django
