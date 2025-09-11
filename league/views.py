@@ -7,7 +7,7 @@ import pandas as pd  # For the league table
 import requests
 from django.http import JsonResponse
 import os
-from datetime import timedelta
+from collections import defaultdict
 
 from django.http import HttpResponse
 from django.db import connection
@@ -162,6 +162,7 @@ def result_view(request):
     print(context)
     return render(request, "league/result.html", context)
 
+
 def table_view(request):
     active_tab = "Table"
     context = get_base_context(active_tab, request)
@@ -217,8 +218,8 @@ def table_view(request):
 
     if not df.empty:
         # Add S.No. column and reorder
-        df['Position'] = range(1, len(df) + 1)
-        
+        df["Position"] = range(1, len(df) + 1)
+
         # Reorder and rename columns
         df = df[
             [
@@ -425,14 +426,42 @@ def stats_view(request):
             .annotate(total_reds=Count("id"))
             .order_by("-total_reds")
         )
+
+        # Man of the Match
+        motm_by_week = defaultdict(list)
+
+        matches_with_motm = Match.objects.filter(
+            Q(tournament=selected_tournament)
+            & (Q(is_played=True) | Q(is_walkover=True))
+        ).order_by("week_number", "match_date", "match_time")
+
+        for match in matches_with_motm:
+            motm_by_week[match.week_number].append(
+                {
+                    "home_team__name": match.home_team.name,
+                    "away_team__name": match.away_team.name,
+                    "mom__name": match.mom.name if match.mom else "N/A",
+                    "mom_team__name": match.mom.team.name if match.mom else "N/A",
+                    'is_walkover': match.is_walkover  # Add this line
+                }
+            )
+
+        # Convert defaultdict to a list of dictionaries for easier iteration in the template
+        motm_list = [
+            {"week_number": week, "matches": matches}
+            for week, matches in sorted(motm_by_week.items())
+        ]
+
     else:
         top_scorers = []
         yellow_cards = []
         red_cards = []
+        motm_list = []
 
     context["top_scorers"] = top_scorers
     context["yellow_cards"] = yellow_cards
     context["red_cards"] = red_cards
+    context["motm_by_week"] = motm_list
 
     return render(request, "league/stats.html", context)
 

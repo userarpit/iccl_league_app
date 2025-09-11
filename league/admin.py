@@ -6,6 +6,7 @@ from more_admin_filters import DropdownFilter
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.db.models import Q
+# from tracking.models import Visitor
 
 
 class TournamentAdminMixin:
@@ -308,3 +309,4 @@ class TournamentAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ("short_description", "long_description")
+    
