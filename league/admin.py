@@ -8,7 +8,6 @@ from django.utils.html import strip_tags
 from django.db.models import Q
 # from tracking.models import Visitor
 
-
 class TournamentAdminMixin:
     def tournament_short_description(self, obj):
         if hasattr(obj, "tournament"):
@@ -108,7 +107,7 @@ class MatchAdmin(TournamentAdminMixin, admin.ModelAdmin):
         "is_played",
         "is_walkover",
     )
-    
+
     search_fields = ("home_team__name", "away_team__name")
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -309,4 +308,3 @@ class TournamentAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ("short_description", "long_description")
-    
