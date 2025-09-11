@@ -2,12 +2,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.db.models import Count, Sum, Q
 from .models import Team_Standing, Match, Tournament, VENUE, Card, Goal, Team, Player
-from datetime import timedelta
 import pandas as pd  # For the league table
 import requests
 from django.http import JsonResponse
 import os
 from collections import defaultdict
+from django.contrib import messages
+from .forms import PlayerImageForm
+import cloudinary.uploader
 
 from django.http import HttpResponse
 from django.db import connection
@@ -442,7 +444,7 @@ def stats_view(request):
                     "away_team__name": match.away_team.name,
                     "mom__name": match.mom.name if match.mom else "N/A",
                     "mom_team__name": match.mom.team.name if match.mom else "N/A",
-                    'is_walkover': match.is_walkover  # Add this line
+                    "is_walkover": match.is_walkover,  # Add this line
                 }
             )
 
@@ -516,7 +518,9 @@ def player_profile_view(request, player_id):
     selected_tournament = context["selected_tournament"]
 
     player = get_object_or_404(Player, id=player_id)
-
+    # Instantiate the form for both cases
+    image_form = PlayerImageForm()
+    
     if selected_tournament:
         # Check if the player belongs to the selected tournament
         if player.team.tournament != selected_tournament:
@@ -557,6 +561,7 @@ def player_profile_view(request, player_id):
                 "goals": goals,
                 "cards": cards,
                 "moms": moms,  # Add the MOM queryset
+                "form": image_form, # Pass the form in the context
             }
         )
     else:
@@ -567,6 +572,7 @@ def player_profile_view(request, player_id):
                 "goals": [],
                 "cards": [],
                 "moms": [],
+                "form": image_form, # Pass the form in the contextx`x`
             }
         )
 
@@ -581,3 +587,33 @@ def health_check(request):
         return HttpResponse("OK", status=200)
     except Exception:
         return HttpResponse("Database connection failed", status=500)
+
+def player_upload_image(request, player_id):
+    if request.method == "POST":
+        form = PlayerImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            player = get_object_or_404(Player, pk=player_id)
+            image_file = form.cleaned_data["image"]
+
+            try:
+                # Use cloudinary.uploader.upload to send the image
+                # 'folder' organizes the images in your Cloudinary account
+                # 'public_id' gives the image a unique name
+                upload_result = cloudinary.uploader.upload(
+                    image_file, 
+                    folder="player_images", 
+                    public_id=f"player_{player.id}"
+                )
+
+                # Get the secure URL from the upload result
+                player.image = upload_result["secure_url"]
+                player.save()
+                messages.success(request, "Profile picture updated successfully!")
+            except Exception as e:
+                messages.error(request, f"An error occurred: {e}")
+            
+            # Redirect back to the player's profile page
+            return redirect("player_profile", player_id=player.id)
+    
+    # If not a POST request, redirect back to the profile page
+    return redirect("player_profile", player_id=player_id)
