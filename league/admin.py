@@ -186,6 +186,35 @@ class MatchAdmin(TournamentAdminMixin, admin.ModelAdmin):
         except Exception as e:
             print(f"Error sending email: {e}")
 
+# Step 1: Create the custom filter class
+class HasImageFilter(admin.SimpleListFilter):
+    """
+    A custom filter to check if a player has an image uploaded.
+    """
+    title = 'Image Upload Status'  # The title of the filter in the admin sidebar
+    parameter_name = 'has_image' # A URL parameter for the filter
+
+    def lookups(self, request, model_admin):
+        """
+        Returns a list of tuples with the filter options.
+        The first element of the tuple is the value for the URL,
+        and the second is the human-readable option name.
+        """
+        return (
+            ('yes', 'Yes'),
+            ('no', 'No'),
+        )
+
+    def queryset(self, request, queryset):
+        """
+        Applies the filter to the queryset based on the selected option.
+        """
+        if self.value() == 'yes':
+            return queryset.filter(image__isnull=False)
+        if self.value() == 'no':
+            return queryset.filter(image__isnull=True)
+        return queryset
+
 
 # Register the Player model
 @admin.register(Player)
@@ -201,8 +230,9 @@ class PlayerAdmin(TournamentAdminMixin, admin.ModelAdmin):
     )  # Displays the player's name, team, and tournament
     search_fields = ("name",)  # Adds a search bar for the player's name
     list_filter = (
-        "team__tournament__short_description",
+        "tournament__short_description",
         "team",
+        HasImageFilter,
     )  # Filters by tournament short description
 
     # To order the list of players alphabetically by name (A-Z) by default.
@@ -211,7 +241,6 @@ class PlayerAdmin(TournamentAdminMixin, admin.ModelAdmin):
 
 admin.site.unregister(Group)
 # admin.site.register(Tournament)
-
 
 # --- Signal-like functions moved here for use in save_related ---
 def _update_or_create_standing(match_instance):
