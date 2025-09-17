@@ -53,6 +53,12 @@
                         </a>
                     </li>
                     <li class="mb-4">
+                        <a href="{% url 'team_of_the_week' %}?tournament={{ selected_tournament.id }}"
+                            class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'TeamOfTheWeek' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
+                            🌟 TOTW
+                        </a>
+                    </li>
+                    <li class="mb-4">
                         <a href="{% url 'stats' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Stats' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             📈 Stats
@@ -64,12 +70,7 @@
                             👤 Players
                         </a>
                     </li>
-                    <li class="mb-4">
-                        <a href="{% url 'team_of_the_week' %}?tournament={{ selected_tournament.id }}"
-                            class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'TeamOfTheWeek' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
-                            🌟 TOTW
-                        </a>
-                    </li>
+
                     <li class="mb-4">
                         <a href="{% url 'sponsors' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Sponsors' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
