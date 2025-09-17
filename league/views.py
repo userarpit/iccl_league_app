@@ -713,3 +713,13 @@ def team_of_the_week(request):
         "selected_team": selected_team,
     })
     return render(request, "league/team_of_the_week.html", context)
+
+
+def sponsors_view(request):
+    active_tab = "Sponsors"
+    context = get_base_context(active_tab, request)
+
+    tournament_id = request.GET.get("tournament")
+    selected_tournament = Tournament.objects.get(id=tournament_id)
+
+    return render(request, "league/sponsors.html", context)

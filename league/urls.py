@@ -18,4 +18,5 @@ urlpatterns = [
         name="player_upload_image",
     ),
     path("team-of-the-week/", views.team_of_the_week, name="team_of_the_week"),
+    path("sponsors/", views.sponsors_view, name="sponsors"),
 ]
