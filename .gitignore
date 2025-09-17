@@ -13,7 +13,7 @@ __pycache__/
 
 # Virtual environments
 venv/
-iccl_league_app/env/
+env/
 
 # AWS
 *.pem
