@@ -1,0 +1,145 @@
+{% extends 'league/base.html' %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-700 mb-6">⚽ Results</h2>
+
+<div class="mb-6 flex items-center space-x-4">
+    <label for="week_selector" class="text-lg font-medium text-gray-700">Choose week to view results:</label>
+    <select id="week_selector" onchange="navigateToWeek(this, '{% url 'results' %}')"
+            class="block w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+        {% for week_num, label in week_labels.items %}
+            <option value="{{ week_num }}" {% if week_num == selected_week_number %}selected{% endif %}>
+                {{ label }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+
+<h3 class="text-2xl font-semibold text-blue-700 mb-6">Results - Week {{ selected_week_number }} &bull; {{ week_date_str }}</h3>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% if results_for_week %}
+        {% for match in results_for_week %}
+            <div class="w-full bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col items-center text-center">
+                <p class="text-xl font-medium text-gray-800 mb-2">
+                    {{ match.home_team.name }} {{ match.home_score|default_if_none:'?' }} - {{ match.away_score|default_if_none:'?' }} {{ match.away_team.name }}
+                </p>
+                {% if match.match_time %}
+                    <p class="text-blue-500">⏰ {{ match.match_time }}</p>
+                {% endif %}
+                
+                {% if match.is_walkover %}
+                    <p class="text-sm text-red-500 font-semibold mt-2">
+                        Walkover to {{ match.walkover_winner.name }}
+                    </p>
+                {% else %}
+
+                    {% if match.mom %}
+                        <p class="text-sm text-yellow-500 font-semibold mt-2">
+                            🏆 Man of the Match: {{ match.mom.name }}
+                        </p>
+                        {% if match.mom.image %}
+                            <img src="{{ match.mom.image.url }}" alt="Man of the Match: {{ match.mom.name }}" class="w-24 h-24 rounded-full object-cover mt-2">
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+                
+                {% if match.goals.all %}
+                    <div class="flex justify-between mt-4 text-sm text-gray-600">
+                        <div class="w-1/2">
+                            <p class="font-semibold text-green-700">⚽ {{ match.home_team.name }}</p>
+                            <ul class="list-disc list-inside text-left">
+                                {% for goal in match.goals.all %}
+                                    {% if goal.player.team == match.home_team and not goal.own_goal %}
+                                        <li>
+                                            {{ goal.player.name }}
+                                            ({{ goal.goals }})
+                                        </li>
+                                    {% elif goal.own_goal and goal.player.team == match.away_team %}
+                                        <li>
+                                            {{ goal.player.name }}
+                                            ({{ goal.goals }})
+                                            (Own Goal)
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="w-1/2 pl-4">
+                            <p class="font-semibold text-green-700">⚽ {{ match.away_team.name }}</p>
+                            <ul class="list-disc list-inside text-left">
+                                {% for goal in match.goals.all %}
+                                    {% if goal.player.team == match.away_team and not goal.own_goal %}
+                                        <li>
+                                            {{ goal.player.name }}
+                                            ({{ goal.goals }})
+                                        </li>
+                                    {% elif goal.own_goal and goal.player.team == match.home_team %}
+                                        <li>
+                                            {{ goal.player.name }}
+                                            ({{ goal.goals }})
+                                            (Own Goal)
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+                {% if match.cards.all %}
+                    <div class="flex justify-between mt-4 text-sm text-gray-600">
+                        <div class="w-1/2">
+                            <ul class="list-disc list-inside text-left">
+                                {% for card in match.cards.all %}
+                                    {% if card.player.team == match.home_team %}
+                                        <li>
+                                            {{ card.player.name }} -
+                                            {% if card.card_type == 'YELLOW' %}
+                                                🟨
+                                            {% else %}
+                                                🟥
+                                            {% endif %}
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="w-1/2 pl-4">
+                            <ul class="list-disc list-inside text-left">
+                                {% for card in match.cards.all %}
+                                    {% if card.player.team == match.away_team %}
+                                        <li>
+                                            {{ card.player.name }} -
+                                            {% if card.card_type == 'YELLOW' %}
+                                                🟨
+                                            {% else %}
+                                                🟥
+                                            {% endif %}
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-gray-600 text-center">No results available for this week yet.</p>
+    {% endif %}
+</div>
+<script>
+    function navigateToWeek(selectElement, baseUrl) {
+        const selectedWeek = selectElement.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        urlParams.set('week_number', selectedWeek);
+        
+        const newUrl = baseUrl + '?' + urlParams.toString();
+
+        console.log("Navigating to:", newUrl); 
+
+        window.location.href = newUrl;
+    }
+</script>
+{% endblock %}

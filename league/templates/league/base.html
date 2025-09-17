@@ -1,0 +1,134 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{% static 'league/img/Black & Red.png' %}" type="image/x-icon">
+    <title>ICCL - Indore City Champions League</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'league/css/style.css' %}">
+</head>
+
+<body class="bg-gray-100 font-sans antialiased">
+    <div class="min-h-screen flex">
+        <aside id="sidebar" class="w-64 bg-gradient-to-b from-gray-900 to-blue-900 text-white p-6 shadow-lg transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-50 fixed inset-y-0 left-0 overflow-y-auto flex flex-col">
+            <a href="/" class="flex items-center justify-center space-x-2 text-yellow-300 font-bold mb-8 hidden md:flex mt-3">
+                <img src="{% static 'league/img/White & Red.png' %}" alt="ICCL Logo" class="h-16">
+            </a>
+            <nav class="flex-1">
+                <ul>
+                    <li class="mb-4">
+                        <label for="tournament-select" class="block text-gray-400 text-sm font-bold mb-2">
+                            Select Tournament:
+                        </label>
+                        <select id="tournament-select"
+                                onchange="navigateToTournament(this.value)"
+                                class="block w-full px-4 py-2 rounded-lg text-gray-900 bg-green-400 font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            {% for tournament in tournaments %}
+                                <option value="{{ tournament.id }}" {% if tournament.id == selected_tournament.id %}selected{% endif %}>
+                                    {{ tournament.short_description }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </li>
+                    <li class="mb-4">
+                        <a href="{% url 'fixtures' %}?tournament={{ selected_tournament.id }}"
+                            class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Fixture' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
+                            📅 Fixture
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="{% url 'results' %}?tournament={{ selected_tournament.id }}"
+                            class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Result' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
+                            ⚽ Result
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="{% url 'table' %}?tournament={{ selected_tournament.id }}"
+                            class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Table' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
+                            📊 Table
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="{% url 'stats' %}?tournament={{ selected_tournament.id }}"
+                            class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Stats' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
+                            📈 Stats
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="{% url 'players' %}?tournament={{ selected_tournament.id }}"
+                            class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Players' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
+                            👤 Players
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <footer class="mt-auto pt-8 text-center text-sm">
+                <p>&copy; 2025 ICCL. All Rights Reserved.</p>
+                <div class="flex items-center justify-center space-x-4 mt-4">
+                    <a href="https://youtube.com/@indorecitychampionsleague?si=a5NRBm6MmJtbXSWu" target="_blank" class="block w-8 h-8">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/1280px-YouTube_full-color_icon_%282017%29.svg.png" alt="YouTube" class="w-full h-full object-contain">
+                    </a>
+                    <a href="https://www.instagram.com/indorecity_championsleague?igsh=MXVqbzN4dndyMTk4NQ==" target="_blank" class="block w-8 h-8">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" class="w-full h-full object-contain">
+                    </a>
+                </div>
+            </footer>
+        </aside>
+
+        <div class="flex-1 md:ml-64 overflow-hidden">
+            <header class="bg-gradient-to-r from-gray-900 to-blue-900 text-white p-4 flex items-center justify-between md:hidden">
+                <h1 class="text-2xl font-bold text-yellow-300">
+                    <a href="/">
+                        <img src="{% static 'league/img/White & Red.png' %}" alt="ICCL Logo" class="h-8">
+                    </a>
+                </h1>
+                <button id="menu-button" class="text-white focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </header>
+            
+            <main class="p-4 md:p-8">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h1 class="text-2xl md:text-4xl font-extrabold text-gray-800">
+                            🏆 {{selected_tournament.short_description}} - {{selected_tournament.long_description}}
+                        </h1>
+                        <p class="text-lg text-gray-600">
+                            ({{ venue }})
+                        </p>
+                    </div>
+                    <a href="{% url 'admin:index' %}"
+                    class="inline-block px-4 py-2 rounded-lg text-sm md:text-lg hover:bg-blue-700 transition-colors duration-200">
+                        ⚙️ Admin
+                    </a>
+                </div>
+                <div class="mt-4">
+                    <h2 class="text-xl md:text-2xl font-semibold text-gray-800"></h2>
+                </div>
+                {% block content %}
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+    
+    <script>
+        // JavaScript for mobile menu toggle
+        document.getElementById('menu-button').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // JavaScript for dropdown change
+        function navigateToTournament(tournamentId) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('tournament', tournamentId);
+            window.location.href = url.toString();
+        }
+    </script>
+</body>
+</html>

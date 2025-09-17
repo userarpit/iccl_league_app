@@ -1,0 +1,55 @@
+{% extends 'league/base.html' %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-700 mb-6">📅 Weekly Fixtures (Weeks 1 - {{ max_week_number }})</h2>
+
+<div class="mb-6 flex items-center space-x-4">
+    <label for="week_selector" class="text-lg font-medium text-gray-700">Select Week:</label>
+    <select id="week_selector" onchange="navigateToWeek(this, '{% url 'fixtures' %}')"
+        class="block w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+        {% for week_num, label in week_labels.items %}
+        <option value="{{ week_num }}" {% if week_num == selected_week_number %}selected{% endif %}>
+            {{ label }}
+        </option>
+        {% endfor %}
+    </select>
+</div>
+
+<h3 class="text-2xl font-semibold text-blue-700 mb-6">Matchweek {{ selected_week_number }} &bull; {{ week_date_str }}
+</h3>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% if fixtures_for_week %}
+    {% for match in fixtures_for_week %}
+    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+        <p class="text-xl font-medium text-gray-800 mb-2">{{ match.home_team.name }} vs {{ match.away_team.name }}</p>
+        {% if match.match_time %}
+        <p class="text-blue-500">⏰ {{ match.match_time }}</p>
+        {% else %}
+        <p class="text-gray-500">⏰ Time to be announced</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="text-gray-600">No fixtures scheduled for this week yet.</p>
+    {% endif %}
+</div>
+<script>
+    function navigateToWeek(selectElement, baseUrl) {
+        // print(baseUrl)
+        const selectedWeek = selectElement.value;
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Add the new selected week, this will overwrite any existing week_number parameter
+        urlParams.set('week_number', selectedWeek);
+        console.log(urlParams.toString())
+        console.log(baseUrl)
+        // Build the new URL
+        const newUrl = baseUrl + '?' + urlParams.toString();
+        console.log(newUrl)
+        // Navigate to the new URL
+        window.location.href = newUrl;
+    }
+</script>
+
+{% endblock %}

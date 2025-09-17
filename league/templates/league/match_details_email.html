@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Match Details</title>
+</head>
+
+<body>
+    <h1>Match Details</h1>
+
+    <h2>{{ match.home_team.name }} vs {{ match.away_team.name }}</h2>
+    <p><strong>Match Date:</strong> {{ match.match_date }}</p>
+    <p><strong>Final Score:</strong> {{ match.home_score }} - {{ match.away_score }}</p>
+    {% if match.is_walkover %}
+    <p> Walkover to {{ match.walkover_winner.name }}</p>
+    {% else %}
+    {% if match.mom %}
+    <p><strong>Man of the Match:</strong> {{ match.mom.name }}</p>
+    {% else %}
+    <p><strong>Man of the Match:</strong> Not yet decided.</p>
+    {% endif %}
+
+    <h3>Goal Scorers:</h3>
+    <ul>
+        {% for goal in match.goals.all %}
+        <li>{{ goal.player.name }} ({{ goal.player.team.name }})</li>
+        {% empty %}
+        <li>No goals recorded.</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Cards:</h3>
+    <ul>
+        {% for card in match.cards.all %}
+        <li>{{ card.player.name }} ({{ card.player.team.name }}) - {{ card.card_type }}</li>
+        {% empty %}
+        <li>No cards recorded.</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+
+</html>

@@ -1,0 +1,50 @@
+{% extends 'league/base.html' %}
+{% load custom_filters %}  <-- Add this line
+
+{% block content %}
+<h2 class="text-3xl font-bold text-gray-700 mb-6">👤 Players</h2>
+
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <div class="mb-6 flex items-center space-x-4">
+        <label for="team_selector" class="text-lg font-medium text-gray-700">Choose a team:</label>
+        <select id="team_selector" onchange="navigateToTeam(this)"
+                class="block w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            {% for team in all_teams %}
+                <option value="{{ team.id }}" {% if team.id == selected_team_id %}selected{% endif %}>
+                    {{ team.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div id="player-list-container">
+        <h3 class="text-xl font-semibold text-blue-700 mb-4">Players for {{ all_teams|get_team_name:selected_team_id }}</h3>
+         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {% for player in players_for_team %}
+            <div class="bg-gray-100 p-4 rounded-md shadow-sm text-center flex flex-col items-center">
+                {% if player.image %}
+                <img src="{{ player.image.url }}" alt="{{ player.name }}'s image" 
+                     class="w-24 h-24 rounded-full mb-2 object-cover border-2 border-white shadow-md">
+                {% else %}
+                <div class="w-24 h-24 rounded-full mb-2 bg-gray-300 flex items-center justify-center text-gray-600">
+                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+                </div>
+                {% endif %}
+                <a href="{% url 'player_profile' player.id %}" class="text-blue-600 hover:underline font-medium">
+                    {{ player.name }}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        function navigateToTeam(selectElement) {
+            const selectedTeamId = selectElement.value;
+            if (selectedTeamId) {
+                window.location.href = `{% url 'players' %}?team_id=${selectedTeamId}`;
+            }
+        }
+    </script>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.env
+
+# Django
+*.log
+*.pot
+*.sqlite3
+*.sqlite-journal
+
+# Virtual environments
+venv/
+iccl_league_app/env/
+
+# AWS
+*.pem
+
