@@ -9,6 +9,7 @@
     <title>ICCL - Indore City Champions League</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'league/css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 </head>
 
 <body class="bg-gray-100 font-sans antialiased">
@@ -61,6 +62,12 @@
                         <a href="{% url 'players' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Players' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             👤 Players
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="{% url 'team_of_the_week' %}?tournament={{ selected_tournament.id }}"
+                            class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'TeamOfTheWeek' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
+                            🌟 TOTW
                         </a>
                     </li>
                 </ul>

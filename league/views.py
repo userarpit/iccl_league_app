@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.db.models import Count, Sum, Q
-from .models import Team_Standing, Match, Tournament, VENUE, Card, Goal, Team, Player
+from .models import Team_Standing, Match, Tournament
+from .models import VENUE, Card, Goal, Team, Player, TeamOfTheWeek
 import pandas as pd  # For the league table
 import requests
 from django.http import JsonResponse
@@ -662,3 +663,48 @@ def player_upload_image(request, player_id):
 
     # If not a POST request, redirect back to the profile page
     return redirect("player_profile", player_id=player_id)
+
+def team_of_the_week(request):
+    active_tab = "TeamOfTheWeek"
+    context = get_base_context(active_tab, request)
+
+    tournament_id = request.GET.get("tournament")
+    selected_tournament = Tournament.objects.get(id=tournament_id)
+
+    # Get selected week number (default = 1 if not provided)
+    week_number = request.GET.get("week_number")
+    if week_number:
+        week_number = int(week_number)
+    else:
+        week_number = 1
+
+    # Try to fetch team for this week
+    try:
+        selected_team = TeamOfTheWeek.objects.get(
+            tournament=selected_tournament,
+            week_number=week_number
+        )
+    except TeamOfTheWeek.DoesNotExist:
+        selected_team = None
+
+    # Labels for dropdown (week → formatted string)
+    week_labels = {}
+    all_weeks = TeamOfTheWeek.objects.filter(tournament=selected_tournament).order_by("week_number")
+    for team in all_weeks:
+        week_labels[team.week_number] = f"{team.week_number} - {team.weekend_date.strftime('%A, %d %B %Y')}"
+
+    # If selected week has no label, still add it (so dropdown stays valid)
+    if week_number not in week_labels:
+        from datetime import date
+        week_labels[week_number] = f"{week_number} - (No date)"
+
+    context.update({
+        "tournaments": Tournament.objects.all(),
+        "selected_tournament": selected_tournament,
+        "active_tab": "TeamOfTheWeek",
+        "week_labels": week_labels,
+        "selected_week_number": week_number,
+        "week_date_str": selected_team.weekend_date.strftime("%A, %d %B %Y") if selected_team else "N/A",
+        "selected_team": selected_team,
+    })
+    return render(request, "league/team_of_the_week.html", context)

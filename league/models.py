@@ -259,3 +259,44 @@ class Goal(models.Model):
 
     class Meta:
         managed = True
+
+
+
+class TeamOfTheWeek(models.Model):
+    id = models.AutoField(primary_key=True)
+    week_number = models.PositiveSmallIntegerField()  # 1 to 22
+    weekend_date = models.DateField()  # Sundays (29 Jun 2025 → 22 weeks, skip 19 Oct 2025)
+
+    # Player positions
+    striker = models.ForeignKey(
+        Player, on_delete=models.CASCADE, related_name="striker_weeks"
+    )
+
+    left_mid = models.ForeignKey(
+        Player, on_delete=models.CASCADE, related_name="left_mid_weeks"
+    )
+    right_mid = models.ForeignKey(
+        Player, on_delete=models.CASCADE, related_name="right_mid_weeks"
+    )
+
+    left_defence = models.ForeignKey(
+        Player, on_delete=models.CASCADE, related_name="left_defence_weeks"
+    )
+    right_defence = models.ForeignKey(
+        Player, on_delete=models.CASCADE, related_name="right_defence_weeks"
+    )
+
+    goal_keeper = models.ForeignKey(
+        Player, on_delete=models.CASCADE, related_name="goal_keeper_weeks"
+    )
+
+    # Tournament link
+    tournament = models.ForeignKey(
+        Tournament, on_delete=models.CASCADE, related_name="team_of_the_weeks"
+    )
+
+    def __str__(self):
+        return f"Tournament {self.tournament.short_description} - Week {self.week_number} ({self.weekend_date})"
+
+    class Meta:
+        managed = True

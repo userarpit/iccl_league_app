@@ -1,0 +1,202 @@
+{% extends 'league/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Content wrapper to center and stack elements */
+    .content-wrapper {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        width: 100%;
+        max-width: 800px;
+        box-sizing: border-box;
+        padding-top: 20px;
+        margin: 0 auto;
+    }
+
+    /* Styling for the green box */
+    .green-box {
+        position: relative;
+        overflow: hidden;
+        background-color: #24b906;
+        min-height: 400px;
+    }
+
+    .green-box svg {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    /* Player container for absolute positioning */
+    .player-container {
+        position: absolute;
+        width: 100px;
+        height: auto; /* Changed to auto to accommodate name */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 10;
+    }
+
+    .player-image-wrapper {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid white;
+        box-shadow: 0 0 8px rgba(0,0,0,0.6);
+        margin-bottom: 5px; /* Space between image and name */
+    }
+    
+    .player-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .player-name {
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+        font-size: 0.8rem;
+    }
+    
+    /* Player position mapping based on the image's red dots */
+    #goal-keeper {
+        top: 85%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    #left-defence {
+        top: 60%;
+        left: 20%;
+        transform: translate(-50%, -50%);
+    }
+
+    #right-defence {
+        top: 60%;
+        left: 80%;
+        transform: translate(-50%, -50%);
+    }
+
+    #left-mid {
+        top: 30%;
+        left: 20%;
+        transform: translate(-50%, -50%);
+    }
+
+    #right-mid {
+        top: 30%;
+        left: 80%;
+        transform: translate(-50%, -50%);
+    }
+    
+    #striker {
+        top: 15%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+</style>
+
+<h2 class="text-3xl font-bold text-gray-700 mb-6">🌟 Team of the Week</h2>
+
+<div class="mb-6 flex items-center space-x-4 justify-left">
+    <label for="week_selector" class="text-lg font-medium text-gray-700">Choose week to view team:</label>
+    <select id="week_selector" onchange="navigateToWeek(this, '{% url 'team_of_the_week' %}')"
+        class="block w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+        {% for week_num, label in week_labels.items %}
+            <option value="{{ week_num }}" {% if week_num == selected_week_number %}selected{% endif %}>
+                {{ label }}
+            </option>
+        {% endfor %}
+    </select>
+</div>
+
+<h3 class="text-2xl font-semibold text-green-700 mb-6">
+    Team of the Week - Week {{ selected_week_number }} &bull; {{ week_date_str }}
+</h3>
+<div class="content-wrapper">
+    <div class="flex justify-center">
+        <div class="bg-green-900 w-4/5 rounded-lg shadow-lg green-box relative p-0">
+            <svg viewBox="0 0 600 700" preserveAspectRatio="xMidYMid meet" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
+                <rect x="20" y="20" width="560" height="660" fill="none" stroke="#ffffff" stroke-width="8"/>
+                <rect x="140" y="480" width="320" height="200" fill="none" stroke="#ffffff" stroke-width="6"/>
+                <rect x="220" y="570" width="160" height="110" fill="none" stroke="#ffffff" stroke-width="6"/>
+                <circle cx="300" cy="540" r="5" fill="#ffffff"/>
+                <path d="M190,480 A110,110 0 0,1 410,480" fill="none" stroke="#ffffff" stroke-width="6"/>
+                <path d="M210,20 A90,90 0 0,0 390,20" fill="none" stroke="#ffffff" stroke-width="6"/>
+                <circle cx="300" cy="110" r="5" fill="#ffffff"/>
+            </svg>
+            
+            {% if selected_team %}
+                {% if selected_team.goal_keeper %}
+                    <div id="goal-keeper" class="player-container">
+                        <div class="player-image-wrapper">
+                            <img src="{{ selected_team.goal_keeper.image.url }}" alt="Goal Keeper" class="player-image">
+                        </div>
+                        <span class="player-name">{{ selected_team.goal_keeper.name }}</span>
+                    </div>
+                {% endif %}
+                {% if selected_team.left_defence %}
+                    <div id="left-defence" class="player-container">
+                        <div class="player-image-wrapper">
+                            <img src="{{ selected_team.left_defence.image.url }}" alt="Left Defence" class="player-image">
+                        </div>
+                        <span class="player-name">{{ selected_team.left_defence.name }}</span>
+                    </div>
+                {% endif %}
+                {% if selected_team.left_mid %}
+                    <div id="left-mid" class="player-container">
+                        <div class="player-image-wrapper">
+                            <img src="{{ selected_team.left_mid.image.url }}" alt="Left Mid" class="player-image">
+                        </div>
+                        <span class="player-name">{{ selected_team.left_mid.name }}</span>
+                    </div>
+                {% endif %}
+                {% if selected_team.right_defence %}
+                    <div id="right-defence" class="player-container">
+                        <div class="player-image-wrapper">
+                            <img src="{{ selected_team.right_defence.image.url }}" alt="Right Defence" class="player-image">
+                        </div>
+                        <span class="player-name">{{ selected_team.right_defence.name }}</span>
+                    </div>
+                {% endif %}
+                {% if selected_team.right_mid %}
+                    <div id="right-mid" class="player-container">
+                        <div class="player-image-wrapper">
+                            <img src="{{ selected_team.right_mid.image.url }}" alt="Right Mid" class="player-image">
+                        </div>
+                        <span class="player-name">{{ selected_team.right_mid.name }}</span>
+                    </div>
+                {% endif %}
+                {% if selected_team.striker %}
+                    <div id="striker" class="player-container">
+                        <div class="player-image-wrapper">
+                            <img src="{{ selected_team.striker.image.url }}" alt="Striker" class="player-image">
+                        </div>
+                        <span class="player-name">{{ selected_team.striker.name }}</span>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function navigateToWeek(selectElement, baseUrl) {
+        const selectedWeek = selectElement.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        urlParams.set('tournament', urlParams.get('tournament') || '1');
+        urlParams.set('week_number', selectedWeek);
+        
+        const newUrl = baseUrl + '?' + urlParams.toString();
+        window.location.href = newUrl;
+    }
+</script>
+{% endblock %}
