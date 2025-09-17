@@ -14,6 +14,7 @@ import cloudinary.uploader
 from django.db import connection
 from django.db.models import Min
 from django.utils import timezone
+from django.db.models import Max
 
 # Instagram API config (set your env variables securely!)
 INSTAGRAM_ACCESS_TOKEN = os.getenv("INSTAGRAM_ACCESS_TOKEN")
@@ -671,12 +672,16 @@ def team_of_the_week(request):
     tournament_id = request.GET.get("tournament")
     selected_tournament = Tournament.objects.get(id=tournament_id)
 
-    # Get selected week number (default = 1 if not provided)
+ # Get the latest week number for the selected tournament
+    latest_week = TeamOfTheWeek.objects.filter(tournament=selected_tournament).aggregate(Max('week_number'))
+    latest_week_number = latest_week['week_number__max'] if latest_week['week_number__max'] else 1
+
+    # Get selected week number (default to the latest week if not provided)
     week_number = request.GET.get("week_number")
     if week_number:
         week_number = int(week_number)
     else:
-        week_number = 1
+        week_number = latest_week_number
 
     # Try to fetch team for this week
     try:
