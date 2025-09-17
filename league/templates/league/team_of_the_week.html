@@ -122,7 +122,7 @@
 <div class="mb-6 flex items-center space-x-4 justify-left">
     <label for="week_selector" class="text-lg font-medium text-gray-700">Choose week to view team:</label>
     <select id="week_selector" onchange="navigateToWeek(this, '{% url 'team_of_the_week' %}')"
-        class="block w-48 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+        class="block w-50 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
         {% for week_num, label in week_labels.items %}
             <option value="{{ week_num }}" {% if week_num == selected_week_number %}selected{% endif %}>
                 {{ label }}
