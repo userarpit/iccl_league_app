@@ -1,5 +1,113 @@
 {% extends 'league/base.html' %}
+{% load static %}
 
 {% block content %}
-<h2 class="text-3xl font-bold text-gray-700 mb-6">🤝 Sponsors</h2>
+<div class="bg-gray-200 min-h-screen py-2 px-4">
+    <!-- Page Title -->
+    <h2 class="text-3xl font-bold text-gray-700 mb-1">🤝 Sponsors</h2>
+
+    <!-- Title Sponsor Section -->
+    <div class="text-center my-10">
+        <!-- Big Heading -->
+        <h1 class="text-5xl font-bold text-gray-800 mb-4">Title Sponsor</h1>
+
+        <!-- Sponsor Logo -->
+        <img src="{% static 'league/img/Arthros Multispeciality.png' %}" alt="Arthros Multispeciality Hospital Logo" class="mx-auto mb-4 h-32">
+    </div>
+
+    <!-- Team Sponsors Section -->
+    <div class="my-16">
+        <h2 class="text-4xl font-bold text-gray-800 text-center mb-10">Team Sponsors</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 justify-items-center">
+            <!-- Team Sponsor 1 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/bon_bon.png' %}" alt="Bon Bon by Kanchan Tilak Logo" class="mx-auto mb-2 h-40">
+            </div>
+            <!-- Team Sponsor 2 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/bread_brunch.png' %}" alt="Bread & Brunch Logo" class="mx-auto mb-2 h-40">
+            </div>
+            <!-- Team Sponsor 3 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/procure_consultancy.png' %}" alt="Procure Consultancy Logo" class="mx-auto mb-2 h-40">
+            </div>
+            <!-- Team Sponsor 4 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/ektarfa_online.png' %}" alt="EKTARFA.Online Logo" class="mx-auto mb-2 h-40">
+            </div>
+            <!-- Team Sponsor 5 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/cell_kraft.png' %}" alt="Cell Kraft Logo" class="mx-auto mb-2 h-40">
+            </div>
+            <!-- Team Sponsor 6 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/sarthak_singapore.png' %}" alt="Sarthak Singapore Group Logo" class="mx-auto mb-2 h-40">
+            </div>
+            <!-- Team Sponsor 7 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/sarco_foundation.png' %}" alt="SARCO Foundation Logo" class="mx-auto mb-2 h-40">
+            </div>
+            <!-- Team Sponsor 8 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/kanhaiya_physio.png' %}" alt="Kanhaiya's Physiotherapist Logo" class="mx-auto mb-2 h-40">
+            </div>
+            <!-- Team Sponsor 9 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/hh_digital.png' %}" alt="H&H (Powering Digital Excellence) Logo" class="mx-auto mb-2 h-48">
+            </div>
+            <!-- Team Sponsor 10 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/sapphire.png' %}" alt="Sapphire Logo" class="mx-auto mb-2 h-40">
+            </div>
+            <!-- Team Sponsor 11 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/propex_chemicals.png' %}" alt="Propex Chemicals Logo" class="mx-auto mb-2 h-48">
+            </div>
+            <!-- Team Sponsor 12 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/reckon_infra.png' %}" alt="Reckon Infra Logo" class="mx-auto mb-2 h-40">
+            </div>
+        </div>
+    </div>
+
+    <!-- Co-Sponsors Section -->
+    <div class="my-16">
+        <h2 class="text-4xl font-bold text-gray-800 text-center mb-10">Co-Sponsors</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 justify-items-center">
+            <!-- Co-Sponsor 1 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/grit_pro.png' %}" alt="Grit Pro Logo" class="mx-auto mb-2 h-40">
+            </div>
+
+            <!-- Co-Sponsor 2 (logos side by side) -->
+            <div class="flex justify-center items-center space-x-4">
+                <img src="{% static 'league/img/freehit.png' %}" alt="Freehit Logo" class="h-40">
+                <img src="{% static 'league/img/freekick.png' %}" alt="Freekick Logo" class="h-40">
+            </div>
+
+            <!-- Co-Sponsor 3 -->
+            <div class="text-center">
+                <img src="{% static 'league/img/shreedha_farms.png' %}" alt="Shreedha Farms Logo" class="mx-auto mb-2 h-40">
+            </div>
+        </div>
+    </div>
+
+    <!-- State Sports Partner Section -->
+    <div class="text-center my-10">
+        <h2 class="text-4xl font-bold text-gray-800 text-center mb-10">State Sports Partner</h2>
+        <div class="text-center">
+            <img src="{% static 'league/img/state.png' %}" alt="State Sports Partner" class="mx-auto mb-2 h-40">
+        </div>
+    </div>
+
+    <!-- Watch-Party Partner Section -->
+    <div class="text-center my-16">
+        <h2 class="text-4xl font-bold text-gray-800 text-center mb-10">Watch-Party Partner</h2>
+        <div class="text-center">
+            <img src="{% static 'league/img/watch_party.png' %}" alt="Watch-Party Partner" class="mx-auto mb-2 h-48">
+        </div>
+    </div>
+</div>
 {% endblock %}
