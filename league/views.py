@@ -213,8 +213,6 @@ def result_view(request):
         context["max_week_number"] = 0
 
     return render(request, "league/result.html", context)
-
-
 def table_view(request):
     active_tab = "Table"
     context = get_base_context(active_tab, request)
@@ -225,7 +223,8 @@ def table_view(request):
         context["match_weeks"] = []
         context["selected_week"] = 1
         return render(request, "league/table.html", context)
-    # Get all unique match weeks for the selected tournament
+
+    # Get all unique match weeks
     match_weeks = (
         Team_Standing.objects.filter(tournament=selected_tournament)
         .values_list("matches_played", flat=True)
@@ -233,24 +232,18 @@ def table_view(request):
         .order_by("matches_played")
     )
 
-    # Get the selected match week from the URL query parameters
+    # Selected week
     selected_week = request.GET.get("match_week")
-    print(selected_week)
-    if selected_week and selected_week.isdigit():
+    if selected_week and str(selected_week).isdigit():
         selected_week = int(selected_week)
     else:
-        # Default to the latest match week for the selected tournament
-        if match_weeks:
-            selected_week = match_weeks.last()
-        else:
-            selected_week = 1
+        selected_week = match_weeks.last() if match_weeks else 1
 
-    # Fetch data for the selected match week and tournament
+    # Current standings (ordered)
     standings_data = Team_Standing.objects.filter(
         tournament=selected_tournament, matches_played=selected_week
     ).order_by("-points", "-goal_difference", "-goals_for")
 
-    # Convert queryset to DataFrame
     df = pd.DataFrame(
         list(
             standings_data.values(
@@ -268,10 +261,48 @@ def table_view(request):
     )
 
     if not df.empty:
-        # Add S.No. column and reorder
+        # numeric positions for calculation
         df["Position"] = range(1, len(df) + 1)
 
-        # Reorder and rename columns
+        # Compare with previous week (if not the first recorded week)
+        if match_weeks and selected_week > min(match_weeks):
+            prev_week_qs = Team_Standing.objects.filter(
+                tournament=selected_tournament, matches_played=selected_week - 1
+            ).order_by("-points", "-goal_difference", "-goals_for")
+
+            prev_df = pd.DataFrame(list(prev_week_qs.values("name")))
+            if not prev_df.empty:
+                prev_df["Prev_Position"] = range(1, len(prev_df) + 1)
+                # merge prev position into current df
+                df = df.merge(prev_df[["name", "Prev_Position"]], on="name", how="left")
+                df["Change"] = df["Prev_Position"] - df["Position"]
+
+                def decorated_position(row):
+                    pos = int(row["Position"])
+                    change = row.get("Change")
+                    # base wrapper with two spans: number and arrow area
+                    base = f'<span class="pos-cell"><span class="pos-number">{pos}</span>'
+                    if pd.isna(change) or change == 0:
+                        arrow_html = '<span class="pos-arrow"></span>'
+                    elif change > 0:
+                        arrow_html = f'<span class="pos-arrow up">&#9650;{int(change)}</span>'
+                    else:
+                        arrow_html = f'<span class="pos-arrow down">&#9660;{abs(int(change))}</span>'
+                    return base + arrow_html + "</span>"
+
+                df["Position"] = df.apply(decorated_position, axis=1)
+            else:
+                # previous week empty — still render wrapped position to keep spacing
+                df["Position"] = df["Position"].apply(
+                    lambda x: f'<span class="pos-cell"><span class="pos-number">{int(x)}</span><span class="pos-arrow"></span></span>'
+                )
+        else:
+            # first week (or only one week) — wrap with empty arrow span for alignment
+            df["Position"] = df["Position"].apply(
+                lambda x: f'<span class="pos-cell"><span class="pos-number">{int(x)}</span><span class="pos-arrow"></span></span>'
+            )
+
+        # Reorder columns (no separate Indicator column)
         df = df[
             [
                 "Position",
@@ -286,6 +317,7 @@ def table_view(request):
                 "points",
             ]
         ]
+
         df = df.rename(
             columns={
                 "name": "Team",
@@ -299,7 +331,9 @@ def table_view(request):
                 "points": "Pts",
             }
         )
-        points_table_html = df.to_html(index=False, classes="league-table")
+
+        # keep escape=False so our HTML spans remain
+        points_table_html = df.to_html(index=False, escape=False, classes="league-table")
     else:
         points_table_html = "<p>No standings available</p>"
 
@@ -308,6 +342,7 @@ def table_view(request):
     context["selected_week"] = selected_week
 
     return render(request, "league/table.html", context)
+
 
 
 def team_of_the_week_view(request):
@@ -665,6 +700,7 @@ def player_upload_image(request, player_id):
     # If not a POST request, redirect back to the profile page
     return redirect("player_profile", player_id=player_id)
 
+
 def team_of_the_week(request):
     active_tab = "TeamOfTheWeek"
     context = get_base_context(active_tab, request)
@@ -672,9 +708,13 @@ def team_of_the_week(request):
     tournament_id = request.GET.get("tournament")
     selected_tournament = Tournament.objects.get(id=tournament_id)
 
- # Get the latest week number for the selected tournament
-    latest_week = TeamOfTheWeek.objects.filter(tournament=selected_tournament).aggregate(Max('week_number'))
-    latest_week_number = latest_week['week_number__max'] if latest_week['week_number__max'] else 1
+    # Get the latest week number for the selected tournament
+    latest_week = TeamOfTheWeek.objects.filter(
+        tournament=selected_tournament
+    ).aggregate(Max("week_number"))
+    latest_week_number = (
+        latest_week["week_number__max"] if latest_week["week_number__max"] else 1
+    )
 
     # Get selected week number (default to the latest week if not provided)
     week_number = request.GET.get("week_number")
@@ -686,32 +726,40 @@ def team_of_the_week(request):
     # Try to fetch team for this week
     try:
         selected_team = TeamOfTheWeek.objects.get(
-            tournament=selected_tournament,
-            week_number=week_number
+            tournament=selected_tournament, week_number=week_number
         )
     except TeamOfTheWeek.DoesNotExist:
         selected_team = None
 
     # Labels for dropdown (week → formatted string)
     week_labels = {}
-    all_weeks = TeamOfTheWeek.objects.filter(tournament=selected_tournament).order_by("week_number")
+    all_weeks = TeamOfTheWeek.objects.filter(tournament=selected_tournament).order_by(
+        "week_number"
+    )
     for team in all_weeks:
-        week_labels[team.week_number] = f"{team.week_number} - {team.weekend_date.strftime('%A, %d %B %Y')}"
+        week_labels[team.week_number] = (
+            f"{team.week_number} - {team.weekend_date.strftime('%A, %d %B %Y')}"
+        )
 
     # If selected week has no label, still add it (so dropdown stays valid)
     if week_number not in week_labels:
         from datetime import date
+
         week_labels[week_number] = f"{week_number} - (No date)"
 
-    context.update({
-        "tournaments": Tournament.objects.all(),
-        "selected_tournament": selected_tournament,
-        "active_tab": "TeamOfTheWeek",
-        "week_labels": week_labels,
-        "selected_week_number": week_number,
-        "week_date_str": selected_team.weekend_date.strftime("%A, %d %B %Y") if selected_team else "N/A",
-        "selected_team": selected_team,
-    })
+    context.update(
+        {
+            "tournaments": Tournament.objects.all(),
+            "selected_tournament": selected_tournament,
+            "active_tab": "TeamOfTheWeek",
+            "week_labels": week_labels,
+            "selected_week_number": week_number,
+            "week_date_str": selected_team.weekend_date.strftime("%A, %d %B %Y")
+            if selected_team
+            else "N/A",
+            "selected_team": selected_team,
+        }
+    )
     return render(request, "league/team_of_the_week.html", context)
 
 

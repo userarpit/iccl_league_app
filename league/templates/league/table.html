@@ -47,6 +47,36 @@
     .league-table tr:hover {
         background: #f1f1f1;
     }
+
+    /* Position & arrow alignment helpers */
+    .league-table td .pos-cell {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;               /* space between number and arrow area */
+    }
+
+    /* fixed width for the numeric part so 1 and 10 align properly */
+    .league-table td .pos-number {
+        display: inline-block;
+        width: 2ch;             /* width sized to roughly 2 digits; tweak if needed */
+        min-width: 2ch;
+        text-align: right;
+        font-weight: 600;
+    }
+
+    /* fixed width for arrow + move count so arrow remains vertically aligned */
+    .league-table td .pos-arrow {
+        display: inline-block;
+        width: 3ch;             /* room for arrow + small number (e.g. "▲10") */
+        min-width: 3ch;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    /* colored states */
+    .league-table td .pos-arrow.up { color: #16a34a; }   /* green */
+    .league-table td .pos-arrow.down { color: #ef4444; } /* red */
+
 </style>
 
 <script>
