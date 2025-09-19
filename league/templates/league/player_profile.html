@@ -6,28 +6,15 @@
     <h2 class="text-3xl font-bold text-gray-700 mb-6">Player Profile</h2>
     
     <div class="flex items-center space-x-6 mb-4">
-        <form action="{% url 'player_upload_image' player.id %}" method="post" enctype="multipart/form-data" class="flex flex-col items-center">
-            {% csrf_token %}
-            
-            <div class="relative group">
-                {% if player.image %}
-                    <img src="{{ player.image.url }}" alt="{{ player.name }}" class="w-24 h-24 rounded-full object-cover">
-                {% else %}
-                    <div class="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
-                        No Photo
-                    </div>
-                {% endif %}
-                
-                <div class="absolute inset-0 rounded-full flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer">
-                    <label for="id_image" class="text-white text-sm font-semibold cursor-pointer">
-                        Upload
-                    </label>
-                    {{ form.image }}
+        <div>
+            {% if player.image %}
+                <img src="{{ player.image.url }}" alt="{{ player.name }}" class="w-24 h-24 rounded-full object-cover">
+            {% else %}
+                <div class="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
+                    No Photo
                 </div>
-            </div>
-            
-            <button type="submit" id="submit-image-form" class="hidden"></button>
-        </form>
+            {% endif %}
+        </div>
         
         <div>
             <h3 class="text-2xl font-semibold text-blue-700">{{ player.name }}</h3>
@@ -100,17 +87,4 @@
     </div>
 
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const imageInput = document.getElementById('id_image');
-    if (imageInput) {
-        imageInput.style.display = 'none'; // Hides the default file input
-        imageInput.addEventListener('change', function() {
-            // Automatically submit the form when a file is selected
-            document.getElementById('submit-image-form').click();
-        });
-    }
-});
-</script>
 {% endblock %}
