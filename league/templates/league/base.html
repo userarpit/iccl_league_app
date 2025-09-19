@@ -34,12 +34,6 @@
                             {% endfor %}
                         </select>
                     </li>
-                    <li class="mb-4">
-                        <a href="{% url 'sponsors' %}?tournament={{ selected_tournament.id }}"
-                            class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Sponsors' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
-                            🤝 Sponsors
-                        </a>
-                    </li>
 
                     <li class="mb-4">
                         <a href="{% url 'fixtures' %}?tournament={{ selected_tournament.id }}"
@@ -75,6 +69,12 @@
                         <a href="{% url 'players' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Players' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             👤 Players
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="{% url 'sponsors' %}?tournament={{ selected_tournament.id }}"
+                            class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Sponsors' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
+                            🤝 Sponsors
                         </a>
                     </li>
 
