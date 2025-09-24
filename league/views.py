@@ -72,7 +72,7 @@ def get_base_context(active_tab, request):
         request
     )
     context["venue"] = VENUE
-    context["active_tab"] = (active_tab,)
+    context["active_tab"] = active_tab
     context["week_labels"] = get_week_labels(context["selected_tournament"])
 
     return context
@@ -773,5 +773,5 @@ def team_of_the_week(request):
 def sponsors_view(request):
     active_tab = "Sponsors"
     context = get_base_context(active_tab, request)
-
+    print(context['active_tab'])
     return render(request, "league/sponsors.html", context)
