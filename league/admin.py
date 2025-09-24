@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.core.mail import send_mail
 from django.contrib.auth.models import Group
 from .models import Team, Match, Player, Card, Goal
-from .models import Sponsor, Team_Standing, Tournament, TeamOfTheWeek
+from .models import Team_Standing, Tournament, TeamOfTheWeek
 from more_admin_filters import DropdownFilter
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -355,17 +355,3 @@ class TournamentAdmin(admin.ModelAdmin):
 
     readonly_fields = ("short_description", "long_description")
 
-
-@admin.register(Sponsor)
-class SponsorAdmin(admin.ModelAdmin):
-    """
-    Admin configuration for the Player model.
-    """
-
-    list_display = (
-        "name",
-        "sponsor_type",
-        "tournament",
-    )  # Displays the player's name, team, and tournament
-
-    # To order the list of players alphabetically by name (A-Z) by default.
