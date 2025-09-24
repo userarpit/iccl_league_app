@@ -776,19 +776,17 @@ def sponsors_view(request):
     selected_tournament = context["selected_tournament"]
 
     # Get all sponsors related to this tournament
-    sponsors = Sponsor.objects.filter(tournament=selected_tournament)
-    print(sponsors[1].sponsor_type)
+    sponsors = Sponsor.objects.filter(tournament=selected_tournament).order_by(
+        "id"
+    )
+    # for sponsor in sponsors:
+    # print(sponsors[1].sponsor_type)
     # Add data to context
     context.update(
         {
             "selected_tournament": selected_tournament,
             "sponsors": sponsors,
-            "state_sports_partner": sponsors.filter(
-                sponsor_type="State Sports Partner"
-            ).first(),
-            "watch_party_partner": sponsors.filter(
-                sponsor_type="Watch-Party Partner"
-            ).first(),
         }
     )
+    print(context["sponsors"][7].sponsor_type)
     return render(request, "league/sponsors.html", context)
