@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.db.models import Count, Sum, Q
 from .models import Team_Standing, Match, Tournament
-from .models import VENUE, Card, Goal, Team, Player, TeamOfTheWeek
+from .models import VENUE, Card, Goal, Team, Player, TeamOfTheWeek, Sponsor
 import pandas as pd  # For the league table
 import requests
 from django.http import JsonResponse
@@ -213,6 +213,8 @@ def result_view(request):
         context["max_week_number"] = 0
 
     return render(request, "league/result.html", context)
+
+
 def table_view(request):
     active_tab = "Table"
     context = get_base_context(active_tab, request)
@@ -281,11 +283,15 @@ def table_view(request):
                     pos = int(row["Position"])
                     change = row.get("Change")
                     # base wrapper with two spans: number and arrow area
-                    base = f'<span class="pos-cell"><span class="pos-number">{pos}</span>'
+                    base = (
+                        f'<span class="pos-cell"><span class="pos-number">{pos}</span>'
+                    )
                     if pd.isna(change) or change == 0:
                         arrow_html = '<span class="pos-arrow"></span>'
                     elif change > 0:
-                        arrow_html = f'<span class="pos-arrow up">&#9650;{int(change)}</span>'
+                        arrow_html = (
+                            f'<span class="pos-arrow up">&#9650;{int(change)}</span>'
+                        )
                     else:
                         arrow_html = f'<span class="pos-arrow down">&#9660;{abs(int(change))}</span>'
                     return base + arrow_html + "</span>"
@@ -333,7 +339,9 @@ def table_view(request):
         )
 
         # keep escape=False so our HTML spans remain
-        points_table_html = df.to_html(index=False, escape=False, classes="league-table")
+        points_table_html = df.to_html(
+            index=False, escape=False, classes="league-table"
+        )
     else:
         points_table_html = "<p>No standings available</p>"
 
@@ -342,7 +350,6 @@ def table_view(request):
     context["selected_week"] = selected_week
 
     return render(request, "league/table.html", context)
-
 
 
 def team_of_the_week_view(request):
@@ -768,6 +775,22 @@ def sponsors_view(request):
     context = get_base_context(active_tab, request)
 
     tournament_id = request.GET.get("tournament")
-    selected_tournament = Tournament.objects.get(id=tournament_id)
-
+    selected_tournament = get_object_or_404(Tournament, id=tournament_id)
+    # print(selected_tournament)
+    # Get all sponsors related to this tournament
+    sponsors = Sponsor.objects.filter(tournament=selected_tournament)
+    
+    for s in sponsors:
+        print(s.name)
+        
+    context.update({
+        "selected_tournament": selected_tournament,
+        "team_sponsors": [s for s in sponsors if s.sponsor_type.strip().lower() == "team sponsers"],
+        "co_sponsors": sponsors.filter(sponsor_type="Co-Sponsers"),
+        "title_sponsor": sponsors.filter(sponsor_type="Title Sponser").first(),  # usually only one
+        "state_sports_partner": sponsors.filter(sponsor_type="State Sports Partner").first(),
+        "watch_party_partner": sponsors.filter(sponsor_type="Watch-Party Partner").first(),
+    })
+    print(context['selected_tournament'])
+    print(context['team_sponsors'])
     return render(request, "league/sponsors.html", context)
