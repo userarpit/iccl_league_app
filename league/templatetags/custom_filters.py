@@ -1,5 +1,6 @@
 from django import template
 from ..models import Team
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -34,3 +35,14 @@ def get_opponent(match, team_name):
     if match.home_team.name == team_name:
         return match.away_team.name
     return match.home_team.name
+
+@register.filter
+def convert_newlines(text):
+    """
+    Replaces newline characters with HTML paragraph tags.
+    """
+    if not text:
+        return ""
+    # Replaces consecutive newlines with </p><p>
+    paragraphs = text.replace('\r\n\r\n', '</p><p class="mt-4">').replace('\n\n', '</p><p class="mt-4">')
+    return mark_safe(f"<p>{paragraphs}</p>")

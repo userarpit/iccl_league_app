@@ -1,0 +1,33 @@
+{% if sponsor.location or sponsor.phone or sponsor.email or sponsor.website or sponsor.instagram or sponsor.linktree %}
+  <p class="mt-4 text-lg font-bold">Point of Contact</p>
+  <ul class="list-disc list-inside space-y-1 text-lg text-left">
+    {% if sponsor.location %}
+      <li>📍 Location: {{ sponsor.location }}</li>
+    {% endif %}
+    {% if sponsor.phone %}
+      <li>📞 Phone: {{ sponsor.phone }}</li>
+    {% endif %}
+    {% if sponsor.email %}
+      <li>📧 Email: 
+        <a href="mailto:{{ sponsor.email }}" class="text-blue-600 hover:underline">{{ sponsor.email }}</a>
+      </li>
+    {% endif %}
+    {% if sponsor.website %}
+      <li>🌐 Website: 
+        <a href="{{ sponsor.website }}" class="text-blue-600 hover:underline">{{ sponsor.website }}</a>
+      </li>
+    {% endif %}
+    {% if sponsor.instagram %}
+      <li>📲 Instagram: 
+        <a href="https://www.instagram.com/{{ sponsor.instagram }}" class="text-blue-600 hover:underline">
+          {{ sponsor.instagram }}
+        </a>
+      </li>
+    {% endif %}
+    {% if sponsor.linktree %}
+      <li>🔗 Linktree: 
+        <a href="{{ sponsor.linktree }}" class="text-blue-600 hover:underline">{{ sponsor.linktree }}</a>
+      </li>
+    {% endif %}
+  </ul>
+{% endif %}

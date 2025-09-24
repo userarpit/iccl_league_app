@@ -301,3 +301,38 @@ class TeamOfTheWeek(models.Model):
 
     class Meta:
         managed = True
+
+
+class Sponsor(models.Model):
+    id = models.AutoField(primary_key=True)  # Auto-incrementing primary key
+    name = models.CharField(max_length=60)
+    sponsor_type = models.CharField(max_length=30)  # fixed length up to 30
+    
+    sponsor_image = CloudinaryField(
+        "image",
+        blank=True,
+        null=True,
+        help_text="Sponsor image stored in Cloudinary"
+    )
+    # path to image file
+    description = models.TextField(blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    phone = models.CharField(max_length=60, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    website = models.URLField(blank=True, null=True)
+    instagram = models.CharField(
+        max_length=30, blank=True, null=True
+    )  # normal char field
+    linktree = models.URLField(blank=True, null=True)
+    tournament = models.ForeignKey(
+        "Tournament",  # assumes Tournament model exists in same app
+        on_delete=models.CASCADE,
+        related_name="sponsors",
+    )
+
+    def __str__(self):
+        return f"{self.name} ({self.sponsor_type})"
+
+    class Meta:
+        managed = True
+        db_table = "league_sponsor"

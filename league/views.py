@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.db.models import Count, Sum, Q
 from .models import Team_Standing, Match, Tournament
-from .models import VENUE, Card, Goal, Team, Player, TeamOfTheWeek
+from .models import VENUE, Card, Goal, Team, Player, TeamOfTheWeek, Sponsor
 import pandas as pd  # For the league table
 import requests
 from django.http import JsonResponse
@@ -773,5 +773,22 @@ def team_of_the_week(request):
 def sponsors_view(request):
     active_tab = "Sponsors"
     context = get_base_context(active_tab, request)
-    print(context['active_tab'])
+    selected_tournament = context["selected_tournament"]
+
+    # Get all sponsors related to this tournament
+    sponsors = Sponsor.objects.filter(tournament=selected_tournament)
+    print(sponsors[1].sponsor_type)
+    # Add data to context
+    context.update(
+        {
+            "selected_tournament": selected_tournament,
+            "sponsors": sponsors,
+            "state_sports_partner": sponsors.filter(
+                sponsor_type="State Sports Partner"
+            ).first(),
+            "watch_party_partner": sponsors.filter(
+                sponsor_type="Watch-Party Partner"
+            ).first(),
+        }
+    )
     return render(request, "league/sponsors.html", context)
