@@ -36,6 +36,7 @@ def get_opponent(match, team_name):
         return match.away_team.name
     return match.home_team.name
 
+
 @register.filter
 def convert_newlines(text):
     """
@@ -44,5 +45,7 @@ def convert_newlines(text):
     if not text:
         return ""
     # Replaces consecutive newlines with </p><p>
-    paragraphs = text.replace('\r\n\r\n', '</p><p class="mt-4">').replace('\n\n', '</p><p class="mt-4">')
+    # print(text)
+    paragraphs = text.replace("\r", '<br>')
+    print(paragraphs)
     return mark_safe(f"<p>{paragraphs}</p>")
