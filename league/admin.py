@@ -6,7 +6,9 @@ from .models import Team_Standing, Tournament, TeamOfTheWeek, Sponsor
 from more_admin_filters import DropdownFilter
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from django.utils import timezone
 from django.db.models import Q
+
 
 # from tracking.models import Visitor
 
@@ -31,6 +33,24 @@ class TeamAdmin(TournamentAdminMixin, admin.ModelAdmin):
 
     # This list_filter adds a sidebar to filter teams by tournament.
     list_filter = ("tournament__short_description",)
+
+    def get_changeform_initial_data(self, request):
+        """
+        Pre-populate the tournament field with the latest tournament.
+        """
+        initial = super().get_changeform_initial_data(request)
+
+        # Get the latest tournament whose start date is <= today
+        latest_tournament = (
+            Tournament.objects.filter(tournament_start_date__lte=timezone.now().date())
+            .order_by("-tournament_start_date")
+            .first()
+        )
+
+        if latest_tournament:
+            initial["tournament"] = latest_tournament.id
+
+        return initial
 
 
 class CardInline(admin.TabularInline):
@@ -85,8 +105,6 @@ class MatchAdmin(TournamentAdminMixin, admin.ModelAdmin):
         "is_walkover",
         "walkover_winner",
     )
-
-    readonly_fields = ("match_date", "match_time")
 
     def get_fields(self, request, obj=None):
         return [
@@ -189,6 +207,24 @@ class MatchAdmin(TournamentAdminMixin, admin.ModelAdmin):
         except Exception as e:
             print(f"Error sending email: {e}")
 
+    def get_changeform_initial_data(self, request):
+        """
+        Pre-populate the tournament field with the latest tournament.
+        """
+        initial = super().get_changeform_initial_data(request)
+
+        # Get the latest tournament whose start date is <= today
+        latest_tournament = (
+            Tournament.objects.filter(tournament_start_date__lte=timezone.now().date())
+            .order_by("-tournament_start_date")
+            .first()
+        )
+
+        if latest_tournament:
+            initial["tournament"] = latest_tournament.id
+
+        return initial
+
 
 # Step 1: Create the custom filter class
 class HasImageFilter(admin.SimpleListFilter):
@@ -243,11 +279,51 @@ class PlayerAdmin(TournamentAdminMixin, admin.ModelAdmin):
     # To order the list of players alphabetically by name (A-Z) by default.
     ordering = ("name",)
 
+    def get_changeform_initial_data(self, request):
+        """
+        Pre-populate the tournament field with the latest tournament.
+        """
+        initial = super().get_changeform_initial_data(request)
+
+        # Get the latest tournament whose start date is <= today
+        latest_tournament = (
+            Tournament.objects.filter(tournament_start_date__lte=timezone.now().date())
+            .order_by("-tournament_start_date")
+            .first()
+        )
+
+        if latest_tournament:
+            initial["tournament"] = latest_tournament.id
+
+        return initial
+
 
 admin.site.unregister(Group)
-admin.site.register(TeamOfTheWeek)
 
-# admin.site.register(Tournament)
+
+@admin.register(TeamOfTheWeek)
+class TeamOfTheWeekAdmin(TournamentAdminMixin, admin.ModelAdmin):
+    """
+    Admin configuration for the Player model.
+    """
+
+    def get_changeform_initial_data(self, request):
+        """
+        Pre-populate the tournament field with the latest tournament.
+        """
+        initial = super().get_changeform_initial_data(request)
+
+        # Get the latest tournament whose start date is <= today
+        latest_tournament = (
+            Tournament.objects.filter(tournament_start_date__lte=timezone.now().date())
+            .order_by("-tournament_start_date")
+            .first()
+        )
+
+        if latest_tournament:
+            initial["tournament"] = latest_tournament.id
+
+        return initial
 
 
 # --- Signal-like functions moved here for use in save_related ---
@@ -353,12 +429,29 @@ class TournamentAdmin(admin.ModelAdmin):
         "long_description",
     )
 
-    readonly_fields = ("short_description", "long_description")
 
 @admin.register(Sponsor)
-class SponsorsAdmin(admin.ModelAdmin):
+class SponsorsAdmin(TournamentAdminMixin, admin.ModelAdmin):
     list_display = (
         "name",
         "sponsor_type",
         "tournament",
     )
+
+    def get_changeform_initial_data(self, request):
+        """
+        Pre-populate the tournament field with the latest tournament.
+        """
+        initial = super().get_changeform_initial_data(request)
+
+        # Get the latest tournament whose start date is <= today
+        latest_tournament = (
+            Tournament.objects.filter(tournament_start_date__lte=timezone.now().date())
+            .order_by("-tournament_start_date")
+            .first()
+        )
+
+        if latest_tournament:
+            initial["tournament"] = latest_tournament.id
+
+        return initial

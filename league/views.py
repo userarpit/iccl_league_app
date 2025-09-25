@@ -15,6 +15,8 @@ from django.db import connection
 from django.db.models import Min
 from django.utils import timezone
 from django.db.models import Max
+from datetime import date
+
 
 # Instagram API config (set your env variables securely!)
 INSTAGRAM_ACCESS_TOKEN = os.getenv("INSTAGRAM_ACCESS_TOKEN")
@@ -750,7 +752,6 @@ def team_of_the_week(request):
 
     # If selected week has no label, still add it (so dropdown stays valid)
     if week_number not in week_labels:
-        from datetime import date
 
         week_labels[week_number] = f"{week_number} - (No date)"
 
@@ -776,9 +777,7 @@ def sponsors_view(request):
     selected_tournament = context["selected_tournament"]
 
     # Get all sponsors related to this tournament
-    sponsors = Sponsor.objects.filter(tournament=selected_tournament).order_by(
-        "id"
-    )
+    sponsors = Sponsor.objects.filter(tournament=selected_tournament).order_by("id")
 
     context.update(
         {
@@ -788,3 +787,4 @@ def sponsors_view(request):
     )
 
     return render(request, "league/sponsors.html", context)
+

@@ -89,10 +89,16 @@ class Tournament(models.Model):
         help_text="A detailed, long description of the tournament.",
     )
 
+    tournament_start_date = models.DateField(
+        null=True,  # Allows the field to be empty in the database
+        blank=True,  # Allows the field to be empty in forms/admin
+        help_text="The start date of the tournament.",
+    )
+
     def __str__(self):
         """String for representing the Model object."""
         # This will show a user-friendly representation in the admin interface
-        return f"Tournament ID: {self.id} - {self.short_description}"
+        return f"{self.short_description}"
 
     class Meta:
         managed = True
@@ -297,7 +303,7 @@ class TeamOfTheWeek(models.Model):
     )
 
     def __str__(self):
-        return f"Tournament {self.tournament.short_description} - Week {self.week_number} ({self.weekend_date})"
+        return f"{self.tournament.short_description} - Week {self.week_number} ({self.weekend_date})"
 
     class Meta:
         managed = True
@@ -307,12 +313,9 @@ class Sponsor(models.Model):
     id = models.AutoField(primary_key=True)  # Auto-incrementing primary key
     name = models.CharField(max_length=60)
     sponsor_type = models.CharField(max_length=30)  # fixed length up to 30
-    
+
     sponsor_image = CloudinaryField(
-        "image",
-        blank=True,
-        null=True,
-        help_text="Sponsor image stored in Cloudinary"
+        "image", blank=True, null=True, help_text="Sponsor image stored in Cloudinary"
     )
     # path to image file
     description = models.TextField(blank=True, null=True)

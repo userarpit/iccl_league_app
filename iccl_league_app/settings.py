@@ -15,14 +15,14 @@ import os  # Add this at the top if not already there
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # This defines BASE_DIR
-print(BASE_DIR)
+# print(BASE_DIR)
 # Load environment variables from .env file
 load_dotenv(os.path.join(BASE_DIR, ".env"))
-print(os.getenv("DJANGO_DEBUG"))
-print(os.getenv("DATABASE_NAME"))
-print(os.getenv("DATABASE_USER"))
-print(os.getenv("DATABASE_HOST"))
-print(os.getenv("DATABASE_PORT"))
+# print(os.getenv("DJANGO_DEBUG"))
+# print(os.getenv("DATABASE_NAME"))
+# print(os.getenv("DATABASE_USER"))
+# print(os.getenv("DATABASE_HOST"))
+# print(os.getenv("DATABASE_PORT"))
 
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),
