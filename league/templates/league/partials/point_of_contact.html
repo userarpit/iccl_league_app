@@ -1,6 +1,6 @@
 {% if sponsor.location or sponsor.phone or sponsor.email or sponsor.website or sponsor.instagram or sponsor.linktree %}
-  <p class="mt-4 text-lg font-bold">Point of Contact</p>
-  <ul class="list-disc list-inside space-y-1 text-lg text-left">
+  <p class="mt-4 text-left font-bold">Point of Contact</p>
+  <ul class="list-disc mt-2 list-inside space-y-2 text-left">
     {% if sponsor.location %}
       <li>📍 Location: {{ sponsor.location }}</li>
     {% endif %}

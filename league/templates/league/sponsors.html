@@ -6,22 +6,21 @@
 <div class="bg-gray-200 min-h-screen py-2 px-4">
   <h2 class="text-3xl font-bold text-gray-700 mb-1">🤝 Sponsors</h2>
 
-  <div class="my-10">
+  <div class="my-16">
   <h1 class="text-5xl font-bold text-gray-800 text-center mb-10">Title Sponsor</h1>
 
   <!-- Stack vertically in center -->
   <div class="flex flex-col items-center space-y-12">
     {% for sponsor in sponsors %}
       {% if sponsor.sponsor_type == "Title Sponsor" %}
-        <div class="text-center max-w-4xl">
+        <div class="text-center max-w-xl">
           {% if sponsor.sponsor_image %}
             <img src="{{ sponsor.sponsor_image.url }}" 
                  alt="{{ sponsor.name }} Logo"
-                 class="mx-auto mb-4 h-32">
+                 class="mx-auto mb-4 h-40">
           {% endif %}
 
-          <p class="text-2xl font-semibold">{{ sponsor.name }}</p>
-          <p class="mt-4 text-lg text-gray-700">{{ sponsor.description|default:"No description available." }}</p>
+          <p class="text-gray-700 text-left mt-5">{{ sponsor.description|default:"No description available." }}</p>
 
 {% include "league/partials/point_of_contact.html" with sponsor=sponsor %}
 
@@ -41,14 +40,14 @@
   <div class="flex flex-col items-center space-y-12">
     {% for sponsor in sponsors %}
       {% if sponsor.sponsor_type == "Team Sponsors" %}
-        <div class="text-center max-w-md">
+        <div class="text-center max-w-xl">
           {% if sponsor.sponsor_image %}
             <img src="{{ sponsor.sponsor_image.url }}" 
                  alt="{{ sponsor.name }} Logo" 
                  class="mx-auto mb-4 h-40">
           {% endif %}
 
-          <div class="text-gray-700 text-left mt-4">
+          <div class="text-gray-700 text-left mt-5">
             <p>{{ sponsor.description|convert_newlines|default:"No description available." }}</p>
 
             {% include "league/partials/point_of_contact.html" with sponsor=sponsor %}
@@ -75,7 +74,7 @@
             <img src="{{ sponsor.sponsor_image.url }}" alt="{{ sponsor.name }} Logo" class="mx-auto mb-4 h-40">
           {% endif %}
 
-          <div class="text-gray-700 text-left mt-4">
+          <div class="text-gray-700 text-left mt-5">
             <p>{{ sponsor.description|convert_newlines|default:"No description available." }}</p>
 
             {% include "league/partials/point_of_contact.html" with sponsor=sponsor %}
@@ -104,7 +103,7 @@
           {% endif %}
 
           <p class="text-xl font-semibold">{{ sponsor.name }}</p>
-          <p class="mt-2 text-gray-700">{{ sponsor.description|default:"No description available." }}</p>
+          <p class="text-gray-700 text-left mt-4">{text-gray-700 text-left mt-4ion|default:"No description available." }}</p>
 
           {% include "league/partials/point_of_contact.html" with sponsor=sponsor %}
         </div>
@@ -122,15 +121,14 @@
   <div class="flex flex-col items-center space-y-12">
     {% for sponsor in sponsors %}
       {% if sponsor.sponsor_type == "Watch-Party Partner" %}
-        <div class="text-center max-w-4xl">
+        <div class="text-center max-w-xl">
           {% if sponsor.sponsor_image %}
             <img src="{{ sponsor.sponsor_image.url }}" 
                  alt="{{ sponsor.name }}" 
-                 class="mx-auto mb-4 h-48">
+                 class="mx-auto mb-4 h-40">
           {% endif %}
 
-          <p class="text-2xl font-semibold">{{ sponsor.name }}</p>
-          <p class="text-gray-700 text-left mt-4">{{ sponsor.description|default:"No description available." }}</p>
+          <p class="text-gray-700 text-left mt-5">{{ sponsor.description|default:"No description available." }}</p>
 
           {% include "league/partials/point_of_contact.html" with sponsor=sponsor %}
 
