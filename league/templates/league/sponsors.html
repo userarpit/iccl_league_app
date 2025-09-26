@@ -20,10 +20,11 @@
                  class="mx-auto mb-4 h-40">
           {% endif %}
 
-          <p class="text-gray-700 text-left mt-5">{{ sponsor.description|default:"No description available." }}</p>
+          <div class="text-gray-700 text-left mt-5"><p>{{ sponsor.description|convert_newlines|default:"No description available." }}</p>
 
 {% include "league/partials/point_of_contact.html" with sponsor=sponsor %}
-
+            </div>
+          
         </div>
       {% endif %}
     {% empty %}
@@ -103,7 +104,7 @@
           {% endif %}
 
           <p class="text-xl font-semibold">{{ sponsor.name }}</p>
-          <p class="text-gray-700 text-left mt-4">{text-gray-700 text-left mt-4ion|default:"No description available." }}</p>
+          <p class="text-gray-700 text-left mt-4">{sponsor.description|convert_newlines|default:"No description available." }}</p>
 
           {% include "league/partials/point_of_contact.html" with sponsor=sponsor %}
         </div>
@@ -128,10 +129,10 @@
                  class="mx-auto mb-4 h-40">
           {% endif %}
 
-          <p class="text-gray-700 text-left mt-5">{{ sponsor.description|default:"No description available." }}</p>
+          <div class="text-gray-700 text-left mt-5"><p>{{ sponsor.description|convert_newlines|default:"No description available." }}</p>
 
           {% include "league/partials/point_of_contact.html" with sponsor=sponsor %}
-
+          </div>
         </div>
       {% endif %}
     {% empty %}

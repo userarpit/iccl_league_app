@@ -45,5 +45,5 @@ def convert_newlines(text):
     if not text:
         return ""
     # Replaces consecutive newlines with </p><p>
-    paragraphs = text.replace("\r", '<br>')
+    paragraphs = text.replace("\r", '<br>').replace("\t", '&nbsp;&nbsp;&nbsp;&nbsp;')
     return mark_safe(f"<p>{paragraphs}</p>")
