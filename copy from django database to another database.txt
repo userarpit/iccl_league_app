@@ -1,0 +1,20 @@
+1️⃣ Using Django Fixtures (Recommended)
+
+Django allows you to export and import data as JSON, YAML, or XML.
+
+Step A: Export initial data (if from SQLite or existing DB)
+	
+		python manage.py dumpdata > initial_data.json
+
+
+This creates a JSON file with your models’ data.
+
+You can filter specific apps:
+
+		python manage.py dumpdata myapp > myapp_initial_data.json
+
+Step B: Load data into PostgreSQL
+
+After your containers are running and migrations are done:
+
+docker compose exec web python manage.py loaddata initial_data.json

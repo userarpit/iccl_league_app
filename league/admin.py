@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.utils import timezone
 from django.db.models import Q
+import psutil, os
 
 
 # from tracking.models import Visitor
@@ -95,6 +96,10 @@ class GoalInline(admin.TabularInline):
 
 @admin.register(Match)
 class MatchAdmin(TournamentAdminMixin, admin.ModelAdmin):
+    print(
+        "[DEBUG] memory usage MB:",
+        psutil.Process(os.getpid()).memory_info().rss / 1024**2,
+    )
     list_display = (
         "week_number",
         "match_date",
@@ -105,6 +110,13 @@ class MatchAdmin(TournamentAdminMixin, admin.ModelAdmin):
         "is_walkover",
         "walkover_winner",
     )
+    readonly_fields = (
+        "match_date",
+        "match_time",
+        "home_team",
+        "away_team",
+    )
+    # autocomplete_fields = ("mom",)
 
     def get_fields(self, request, obj=None):
         return [
