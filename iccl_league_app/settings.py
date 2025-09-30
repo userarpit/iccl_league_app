@@ -12,17 +12,30 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os  # Add this at the top if not already there
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
+import environ
 
 BASE_DIR = Path(__file__).resolve().parent.parent  # This defines BASE_DIR
-# print(BASE_DIR)
+print(BASE_DIR)
 # Load environment variables from .env file
-load_dotenv(os.path.join(BASE_DIR, ".env"))
-# print(os.getenv("DJANGO_DEBUG"))
-# print(os.getenv("DATABASE_NAME"))
-# print(os.getenv("DATABASE_USER"))
-# print(os.getenv("DATABASE_HOST"))
-# print(os.getenv("DATABASE_PORT"))
+# load_dotenv(os.path.join(BASE_DIR, ".env"))
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+
+with open(os.path.join(BASE_DIR, ".env")) as f:
+    for line in f:
+        if line.strip() and not line.startswith("#"):
+            key, value = line.strip().split("=", 1)
+            os.environ[key] = value  # force override
+            
+print(os.getenv("DJANGO_DEBUG"))
+print(os.getenv("DATABASE_NAME"))
+print(os.getenv("DATABASE_USER"))
+print(os.getenv("DATABASE_HOST"))
+print(os.getenv("DATABASE_PORT"))
+
+print("DEBUG from .env:", env("DJANGO_DEBUG", default="NOT FOUND"))
+print("DEBUG from os.environ:", os.environ.get("DATABASE_HOST"))
 
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": os.environ.get("CLOUDINARY_CLOUD_NAME"),

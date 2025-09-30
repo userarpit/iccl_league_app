@@ -17,4 +17,6 @@ env/
 
 # AWS
 *.pem
-
+supabase password.txt
+set proper sequence and delete and insert order.txt
+league/static/league/img/*
