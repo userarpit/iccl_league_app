@@ -33,6 +33,7 @@ print(os.getenv("DATABASE_NAME"))
 print(os.getenv("DATABASE_USER"))
 print(os.getenv("DATABASE_HOST"))
 print(os.getenv("DATABASE_PORT"))
+print(os.getenv("DATABASE_PASSWORD"))
 
 print("DEBUG from .env:", env("DJANGO_DEBUG", default="NOT FOUND"))
 print("DEBUG from os.environ:", os.environ.get("DATABASE_HOST"))
