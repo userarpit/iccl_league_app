@@ -18,3 +18,9 @@ Step B: Load data into PostgreSQL
 After your containers are running and migrations are done:
 
 docker compose exec web python manage.py loaddata initial_data.json
+
+
+
+
+command to load database in the supabase postgres db.
+psql "postgres://postgres:bRSA47sFwXE3vRav@db.xovqxxzroluhejmgsrwk.supabase.co:5432/postgres?sslmode=require" < render_backup.sql

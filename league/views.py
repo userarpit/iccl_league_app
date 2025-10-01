@@ -499,7 +499,6 @@ def stats_view(request):
             .annotate(total_goals=Sum("goals"))
             .order_by("-total_goals")
         )
-
         # Yellow Cards
         yellow_cards = (
             Card.objects.filter(
