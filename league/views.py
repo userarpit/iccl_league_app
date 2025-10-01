@@ -7,7 +7,7 @@ import pandas as pd  # For the league table
 import requests
 from django.http import JsonResponse
 import os
-from collections import defaultdict
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib import messages
 from .forms import PlayerImageForm
 import cloudinary.uploader
@@ -15,7 +15,7 @@ from django.db import connection
 from django.db.models import Min
 from django.utils import timezone
 from django.db.models import Max
-from datetime import date
+
 
 
 # Instagram API config (set your env variables securely!)
@@ -522,29 +522,23 @@ def stats_view(request):
             .order_by("-total_reds")
         )
 
-        # Man of the Match
-        motm_by_week = defaultdict(list)
-
-        matches_with_motm = Match.objects.filter(
-            Q(tournament=selected_tournament)
-            & (Q(is_played=True) | Q(is_walkover=True))
-        ).order_by("week_number", "match_date", "match_time")
-
-        for match in matches_with_motm:
-            motm_by_week[match.week_number].append(
-                {
-                    "home_team__name": match.home_team.name,
-                    "away_team__name": match.away_team.name,
-                    "mom__name": match.mom.name if match.mom else "N/A",
-                    "mom_team__name": match.mom.team.name if match.mom else "N/A",
-                    "is_walkover": match.is_walkover,  # Add this line
-                }
+        # Man of the Match summary
+        motm_summary = (
+            Match.objects.filter(
+                Q(tournament=selected_tournament)
+                & (Q(is_played=True) | Q(is_walkover=True))
+                & Q(mom__isnull=False)   # only include matches that have MOM
             )
-        # Convert defaultdict to a list of dictionaries for easier iteration in the template
-        motm_list = [
-            {"week_number": week, "matches": matches}
-            for week, matches in sorted(motm_by_week.items(), reverse=True)
-        ]
+            .values("mom__id", "mom__name", "mom__team__name")
+            .annotate(
+                total_mom_count=Count("id", distinct=True),
+                week_numbers=ArrayAgg("week_number", distinct=True)
+            )
+            .order_by("-total_mom_count")
+        )
+        print(motm_summary)
+        # Convert to list for template usage
+        motm_list = list(motm_summary)
 
     else:
         top_scorers = []
@@ -555,7 +549,7 @@ def stats_view(request):
     context["top_scorers"] = top_scorers
     context["yellow_cards"] = yellow_cards
     context["red_cards"] = red_cards
-    context["motm_by_week"] = motm_list
+    context["motm_list"] = motm_list
 
     return render(request, "league/stats.html", context)
 
