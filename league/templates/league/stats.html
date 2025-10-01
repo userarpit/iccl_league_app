@@ -6,16 +6,23 @@
 <div class="bg-white p-6 rounded-lg shadow-md">
     <div class="border-b border-gray-200">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <a href="#" class="tab-link border-b-2 py-4 px-1 text-sm font-medium border-indigo-500 text-indigo-600" data-tab="goals-tab">
+            <a href="#" class="tab-link border-b-2 py-4 px-1 text-sm font-medium border-indigo-500 text-indigo-600"
+                data-tab="goals-tab">
                 Goals
             </a>
-            <a href="#" class="tab-link border-b-2 py-4 px-1 text-sm font-medium border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="yellow-cards-tab">
+            <a href="#"
+                class="tab-link border-b-2 py-4 px-1 text-sm font-medium border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                data-tab="yellow-cards-tab">
                 Yellow Cards
             </a>
-            <a href="#" class="tab-link border-b-2 py-4 px-1 text-sm font-medium border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="red-cards-tab">
+            <a href="#"
+                class="tab-link border-b-2 py-4 px-1 text-sm font-medium border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                data-tab="red-cards-tab">
                 Red Cards
             </a>
-            <a href="#" class="tab-link border-b-2 py-4 px-1 text-sm font-medium border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="motm-tab">
+            <a href="#"
+                class="tab-link border-b-2 py-4 px-1 text-sm font-medium border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                data-tab="motm-tab">
                 Man of the Match
             </a>
         </nav>
@@ -30,7 +37,8 @@
             </div>
             {% for player in top_scorers %}
             <div class="flex items-center border-t border-gray-200 py-2">
-                <span class="w-1/2">{{ player.player__name }} <span class="text-xs text-gray-500">({{ player.player__team__name }})</span></span>
+                <span class="w-1/2">{{ player.player__name }} <span class="text-xs text-gray-500">({{
+                        player.player__team__name }})</span></span>
                 <span class="w-1/2 pl-4 font-medium text-green-600">{{ player.total_goals }}</span>
             </div>
             {% endfor %}
@@ -46,7 +54,8 @@
             </div>
             {% for player in yellow_cards %}
             <div class="flex items-center border-t border-gray-200 py-2">
-                <span class="w-1/2">{{ player.player__name }} <span class="text-xs text-gray-500">({{ player.player__team__name }})</span></span>
+                <span class="w-1/2">{{ player.player__name }} <span class="text-xs text-gray-500">({{
+                        player.player__team__name }})</span></span>
                 <span class="w-1/2 pl-4 font-medium text-yellow-600">{{ player.total_yellows }}</span>
             </div>
             {% endfor %}
@@ -62,7 +71,8 @@
             </div>
             {% for player in red_cards %}
             <div class="flex items-center border-t border-gray-200 py-2">
-                <span class="w-1/2">{{ player.player__name }} <span class="text-xs text-gray-500">({{ player.player__team__name }})</span></span>
+                <span class="w-1/2">{{ player.player__name }} <span class="text-xs text-gray-500">({{
+                        player.player__team__name }})</span></span>
                 <span class="w-1/2 pl-4 font-medium text-red-600">{{ player.total_reds }}</span>
             </div>
             {% endfor %}
@@ -116,7 +126,7 @@
                 // Activate the clicked tab and show its content
                 this.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
                 this.classList.add('border-indigo-500', 'text-indigo-600');
-                
+
                 const targetTabId = this.getAttribute('data-tab');
                 document.getElementById(targetTabId).classList.remove('hidden');
             });

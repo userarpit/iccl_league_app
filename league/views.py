@@ -17,7 +17,6 @@ from django.utils import timezone
 from django.db.models import Max
 
 
-
 # Instagram API config (set your env variables securely!)
 INSTAGRAM_ACCESS_TOKEN = os.getenv("INSTAGRAM_ACCESS_TOKEN")
 INSTAGRAM_BUSINESS_ID = os.getenv("INSTAGRAM_BUSINESS_ID")
@@ -469,9 +468,6 @@ def submit_post(request):
     return redirect("post")
 
 
-# your_app/views.py
-
-
 def post_preview(request):
     active_tab = "Preview"
     context = get_base_context(active_tab, request)
@@ -527,16 +523,15 @@ def stats_view(request):
             Match.objects.filter(
                 Q(tournament=selected_tournament)
                 & (Q(is_played=True) | Q(is_walkover=True))
-                & Q(mom__isnull=False)   # only include matches that have MOM
+                & Q(mom__isnull=False)  # only include matches that have MOM
             )
             .values("mom__id", "mom__name", "mom__team__name")
             .annotate(
                 total_mom_count=Count("id", distinct=True),
-                week_numbers=ArrayAgg("week_number", distinct=True)
+                week_numbers=ArrayAgg("week_number", distinct=True),
             )
-            .order_by("-total_mom_count")
+            .order_by("-total_mom_count", "mom__name")
         )
-        print(motm_summary)
         # Convert to list for template usage
         motm_list = list(motm_summary)
 
@@ -746,7 +741,6 @@ def team_of_the_week(request):
 
     # If selected week has no label, still add it (so dropdown stays valid)
     if week_number not in week_labels:
-
         week_labels[week_number] = f"{week_number} - (No date)"
 
     context.update(
@@ -781,4 +775,3 @@ def sponsors_view(request):
     )
 
     return render(request, "league/sponsors.html", context)
-
