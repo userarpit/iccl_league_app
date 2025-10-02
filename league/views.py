@@ -5,21 +5,13 @@ from .models import Team_Standing, Match, Tournament
 from .models import VENUE, Card, Goal, Team, Player, TeamOfTheWeek, Sponsor
 import pandas as pd  # For the league table
 import requests
-from django.http import JsonResponse
 import os
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.contrib import messages
 from .forms import PlayerImageForm
-import cloudinary.uploader
 from django.db import connection
 from django.db.models import Min
 from django.utils import timezone
 from django.db.models import Max
-
-
-# Instagram API config (set your env variables securely!)
-INSTAGRAM_ACCESS_TOKEN = os.getenv("INSTAGRAM_ACCESS_TOKEN")
-INSTAGRAM_BUSINESS_ID = os.getenv("INSTAGRAM_BUSINESS_ID")
 
 
 def get_week_labels(tournament_id):
@@ -364,64 +356,6 @@ def team_of_the_week_view(request):
 # -------------------------------
 
 
-def post_view(request):
-    """
-    Handles both the post.html page and AJAX preview refresh.
-    If ?ajax=1 is passed, it returns JSON preview data.
-    """
-    active_tab = "Post"
-    context = get_base_context(active_tab, request)
-    weeks = range(1, 23)
-
-    # Defaults
-    selected_type = request.GET.get("post_type", "fixture")
-    try:
-        selected_week = int(request.GET.get("matches_played", 1))
-    except ValueError:
-        selected_week = 1
-
-    # Matches for selected week
-    matches = (
-        Match.objects.filter(week_number=selected_week)
-        .select_related("home_team", "away_team")
-        .order_by("match_time")
-    )
-
-    # Placeholder Team of the Week (replace with real logic later)
-    team_of_week = []
-
-    # 🔹 If AJAX call → return JSON data
-    if request.GET.get("ajax") == "1":
-        data = {
-            "post_type": selected_type,
-            "week": selected_week,
-            "matches": [
-                {
-                    "home": m.home_team.name,
-                    "away": m.away_team.name,
-                    "time": m.match_time,
-                    "home_score": m.home_score,
-                    "away_score": m.away_score,
-                }
-                for m in matches
-            ],
-            "team_of_week": [
-                {"name": p.name, "team": p.team.name} for p in team_of_week
-            ],
-        }
-        return JsonResponse(data)
-
-    # 🔹 Normal request → render HTML template
-
-    context["weeks"] = weeks
-    context["selected_type"] = selected_type
-    context["selected_week"] = selected_week
-    context["matches"] = matches
-    context["team_of_week"] = team_of_week
-
-    return render(request, "league/post.html", context)
-
-
 def submit_post(request):
     if request.method == "POST":
         post_type = request.POST.get("post_type")
@@ -466,24 +400,6 @@ def submit_post(request):
             )
 
     return redirect("post")
-
-
-def post_preview(request):
-    active_tab = "Preview"
-    context = get_base_context(active_tab, request)
-
-    selected_week = request.GET.get("match_week")
-
-    matches = []
-    if selected_week:
-        matches = Match.objects.filter(week_number=selected_week).select_related(
-            "home_team", "away_team"
-        )
-
-    context["selected_week"] = selected_week
-    context["matches"] = matches
-
-    return render(request, "league/post_preview.html", context)
 
 
 def stats_view(request):
@@ -534,16 +450,77 @@ def stats_view(request):
         # Convert to list for template usage
         motm_list = list(motm_summary)
 
+           # ------------------------------------
+        # Team of the Week (TOTW) Logic - CORRECTED
+        # ------------------------------------
+        
+        # Define the fields that link to the Player model
+        player_fields = [
+            "goal_keeper", "left_defence", "right_defence", 
+            "left_mid", "right_mid", "striker"
+        ]
+        
+        # Dictionary to hold the final aggregated data: {player_id: {data}}
+        totw_aggregates = {}
+
+        # 1. Gather all individual TOTW appearances across all positions
+        for field in player_fields:
+            # Query all entries where this position was filled for the selected tournament
+            position_entries = (
+                TeamOfTheWeek.objects.filter(
+                    tournament=selected_tournament,
+                    **{f'{field}__isnull': False}
+                )
+                .values_list(
+                    f'{field}__id', 
+                    'week_number', 
+                    f'{field}__name', 
+                    f'{field}__team__name'
+                )
+            )
+
+            # Manually aggregate the data in Python
+            for player_id, week_number, player_name, player_team in position_entries:
+                if player_id not in totw_aggregates:
+                    # Initialize entry for a new player
+                    totw_aggregates[player_id] = {
+                        "player__id": player_id,
+                        "player__name": player_name,
+                        "player__team__name": player_team,
+                        "total_totw_count": 0,
+                        "week_numbers": set() # Use set to store unique weeks efficiently
+                    }
+                
+                # Update the aggregate count and weeks
+                totw_aggregates[player_id]["total_totw_count"] += 1
+                totw_aggregates[player_id]["week_numbers"].add(week_number)
+
+        # 2. Finalize and sort the list
+        team_of_the_week_unsorted = []
+        for player_data in totw_aggregates.values():
+            # Convert the set of week numbers to a sorted list for the template
+            player_data["week_numbers"] = sorted(list(player_data["week_numbers"]))
+            team_of_the_week_unsorted.append(player_data)
+
+        # 3. Sort by count (descending) then name (ascending)
+        team_of_the_week = sorted(
+            team_of_the_week_unsorted,
+            key=lambda x: (x["total_totw_count"], x["player__name"]),
+            reverse=True
+        )
+
     else:
         top_scorers = []
         yellow_cards = []
         red_cards = []
         motm_list = []
+        team_of_the_week = []  # Initialize TOTW list
 
     context["top_scorers"] = top_scorers
     context["yellow_cards"] = yellow_cards
     context["red_cards"] = red_cards
     context["motm_list"] = motm_list
+    context["team_of_the_week"] = team_of_the_week  # Add to context
 
     return render(request, "league/stats.html", context)
 
@@ -669,35 +646,6 @@ def health_check(request):
         return HttpResponse("Database connection failed", status=500)
 
 
-def player_upload_image(request, player_id):
-    if request.method == "POST":
-        form = PlayerImageForm(request.POST, request.FILES)
-        if form.is_valid():
-            player = get_object_or_404(Player, pk=player_id)
-            image_file = form.cleaned_data["image"]
-
-            try:
-                # Use cloudinary.uploader.upload to send the image
-                # 'folder' organizes the images in your Cloudinary account
-                # 'public_id' gives the image a unique name
-                upload_result = cloudinary.uploader.upload(
-                    image_file, folder="player_images", public_id=f"player_{player.id}"
-                )
-
-                # Get the secure URL from the upload result
-                player.image = upload_result["secure_url"]
-                player.save()
-                messages.success(request, "Profile picture updated successfully!")
-            except Exception as e:
-                messages.error(request, f"An error occurred: {e}")
-
-            # Redirect back to the player's profile page
-            return redirect("player_profile", player_id=player.id)
-
-    # If not a POST request, redirect back to the profile page
-    return redirect("player_profile", player_id=player_id)
-
-
 def team_of_the_week(request):
     active_tab = "TeamOfTheWeek"
     context = get_base_context(active_tab, request)
@@ -774,3 +722,113 @@ def sponsors_view(request):
     )
 
     return render(request, "league/sponsors.html", context)
+
+
+# --- New Helper Function for Post View ---
+def _get_raw_week_data(tournament_id):
+    """Retrieves all week data including the raw date object for filtering."""
+    if not tournament_id:
+        return {}
+
+    week_data = (
+        Match.objects.filter(tournament_id=tournament_id)
+        .values("week_number")
+        .annotate(match_date=Min("match_date"))
+        .order_by("week_number")
+    )
+
+    all_weeks = {}
+    for data in week_data:
+        week_number = data["week_number"]
+        match_date = data["match_date"]
+        all_weeks[week_number] = {
+            "label": f"{week_number} - {match_date.strftime('%A, %d %B %Y')}",
+            "date": match_date,  # The date object is crucial for comparison
+        }
+
+    return all_weeks
+
+
+# --- End New Helper Function ---
+
+
+# REPLACED: New posts_view implementation with default logic
+def posts_view(request):
+    active_tab = "Post"
+    context = get_base_context(active_tab, request)
+    selected_tournament = context["selected_tournament"]
+
+    # 1. Get current state from URL
+    # Default 'type' is 'fixtures'
+    post_type = request.GET.get("type", "fixtures")
+    selected_week_number_str = request.GET.get("week_number")
+
+    default_selected_week = None
+
+    if selected_tournament:
+        # 2. Get all week data (raw date + formatted label) using the helper
+        all_week_data = _get_raw_week_data(selected_tournament.id)
+        today = timezone.now().date()
+
+        # Lists to hold default candidates
+        future_weeks = []
+        past_weeks = []
+
+        # 3. Identify default candidate weeks
+        for week_num, data in all_week_data.items():
+            week_end_date = data["date"]
+
+            # The Match.match_date represents the start date of the match/week.
+            # We use it to determine if it's a "future" or "past" event relative to today.
+            if week_end_date >= today:
+                # Store all future/current weeks
+                future_weeks.append(week_num)
+            else:
+                # Store all past weeks
+                past_weeks.append(week_num)
+
+        # 4. Determine the default week based on the selected post_type
+        if post_type == "fixtures":
+            # Default for Fixtures: First week greater than or equal to today
+            if future_weeks:
+                default_selected_week = min(future_weeks)
+            elif past_weeks:
+                # Fallback to the last past week if no future weeks exist
+                default_selected_week = max(past_weeks)
+
+        elif post_type == "results":
+            # Default for Results: Latest week less than today
+            if past_weeks:
+                default_selected_week = max(past_weeks)
+            elif future_weeks:
+                # Fallback to the first future week if no past weeks exist
+                default_selected_week = min(future_weeks)
+
+    # 5. Determine the final selected week number
+    if selected_week_number_str:
+        # Use the week from the URL if it exists
+        try:
+            # We convert to int/str later, keep it as int if possible for comparison
+            selected_week_number = int(selected_week_number_str)
+        except (ValueError, TypeError):
+            selected_week_number = default_selected_week
+    else:
+        # Use the calculated default week
+        selected_week_number = default_selected_week
+
+    # 6. Update context
+    # context["week_labels"] contains ALL weeks (unfiltered) from get_base_context
+    context["selected_post_type"] = post_type
+    # Convert to string for consistent comparison with template loop keys if needed
+    context["selected_week_number"] = (
+        str(selected_week_number) if selected_week_number is not None else None
+    )
+
+    fixtures_for_week = Match.objects.filter(
+        tournament=context["selected_tournament"], week_number=selected_week_number
+    ).order_by("match_date", "match_time")
+    print(fixtures_for_week)
+    context["fixtures_for_week"] = fixtures_for_week
+    context["total_count"] = range(fixtures_for_week.count())
+
+    return render(request, "league/posts.html", context)

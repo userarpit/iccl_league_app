@@ -106,6 +106,8 @@ class Tournament(models.Model):
 
 class Team(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    logo = CloudinaryField("logo_images", null=True, blank=True)
+    
     tournament = models.ForeignKey(
         Tournament,
         on_delete=models.CASCADE,

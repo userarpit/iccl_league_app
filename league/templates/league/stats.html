@@ -25,6 +25,11 @@
                 data-tab="motm-tab">
                 Man of the Match
             </a>
+            <a href="#"
+                class="tab-link border-b-2 py-4 px-1 text-sm font-medium border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                data-tab="totw-tab">
+                Team of the Week
+            </a>
         </nav>
     </div>
 
@@ -99,6 +104,30 @@
                     {{ motm.total_mom_count }}
                     <span class="text-xs text-gray-500">
                         ({{ motm.week_numbers|join:", " }})
+                    </span>
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="totw-tab" class="tab-content mt-4 hidden">
+        <h3 class="text-xl font-semibold text-purple-700 mb-4">🏆 Team of the Week</h3>
+        <div class="min-w-full">
+            <div class="flex text-gray-600 border-b border-gray-200 py-2">
+                <div class="w-1/2 text-left font-semibold">Player</div>
+                <div class="w-1/2 pl-4 font-semibold">Count (Weeks)</div>
+            </div>
+            {% for player in team_of_the_week %}
+            <div class="flex items-center border-t border-gray-200 py-2">
+                <span class="w-1/2">
+                    {{ player.player__name }}
+                    <span class="text-xs text-gray-500">({{ player.player__team__name }})</span>
+                </span>
+                <span class="w-1/2 pl-4 font-medium text-purple-600">
+                    {{ player.total_totw_count }}
+                    <span class="text-xs text-gray-500">
+                        ({{ player.week_numbers|join:", " }})
                     </span>
                 </span>
             </div>
