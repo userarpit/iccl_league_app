@@ -35,7 +35,13 @@
     </button>
 </div>
 
-<div class="bg-blue-900 p-6 rounded-lg shadow-md text-white">
+<div class="p-6 rounded-lg shadow-md text-white relative"
+     style="background-image: url('{% static 'league/img/post_background.jpg' %}'); 
+            background-size: cover; 
+            background-position: center; 
+            /* Optional overlay for better text contrast */
+            background-blend-mode: darken; 
+            background-color: rgba(0, 0, 0, 0.4);">
 
     <div class="text-center">
         <img src="{% static 'league/img/White Logo.png' %}" alt="Top Image" class="mx-auto mb-6 h-20" />
@@ -51,29 +57,31 @@
                 <div class="w-full h-16 bg-gray-400 rounded-md flex items-center justify-between px-4">
                     <div class="flex items-center w-5/12 h-full"> 
                 
-                <img src="{{ match.home_team.logo.url }}" 
-                     alt="{{ match.home_team.name }} Logo" 
-                     class="h-12 w-12 object-contain flex-shrink-0">
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <span class="font-bold text-sm text-black text-left ml-2 leading-tight">
-                    {{ match.home_team.name }}
-                </span>
-            </div>
+                    <img src="{{ match.home_team.logo.url }}" 
+                            alt="{{ match.home_team.name }} Logo" 
+                            class="h-12 w-12 object-contain flex-shrink-0">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="font-bold text-sm text-black text-left ml-2 leading-tight">
+                        {{ match.home_team.name }}
+                    </span>
+                </div>
 
-            <div class="w-2/12 flex justify-center flex-shrink-0">
-                <span class="text-xl font-extrabold text-blue-900">VS</span>
-            </div>
+                <div class="w-2/12 flex justify-center flex-shrink-0">
+                    <span class="text-xl font-extrabold text-blue-900">VS</span>
+                </div>
 
-            <div class="flex items-center justify-end w-5/12 h-full"> 
-                
-                <span class="font-bold text-sm text-black text-right mr-2 leading-tight">
-                    {{ match.away_team.name }}
-                </span>
-                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <img src="{{ match.away_team.logo.url }}" 
-                     alt="{{ match.away_team.name }} Logo" 
-                     class="h-12 w-12 object-contain flex-shrink-0">
-            </div>
+                <div class="flex items-center justify-end w-5/12 h-full"> 
+                    
+                    <span class="font-bold text-sm text-black text-right mr-2 leading-tight">
+                        {{ match.away_team.name }}
+                    </span>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <img src="{{ match.away_team.logo.url }}" 
+                            alt="{{ match.away_team.name }} Logo" 
+                            class="h-12 w-12 object-contain flex-shrink-0">
+                </div>
                 </div>
 
 
