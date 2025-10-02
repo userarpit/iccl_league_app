@@ -34,7 +34,7 @@
         SHOW
     </button>
 </div>
-
+{% if fixtures_for_week %}
 <div class="p-6 rounded-lg shadow-md text-white relative"
      style="background-image: url('{% static 'league/img/post_background.jpg' %}'); 
             background-size: cover; 
@@ -51,37 +51,44 @@
         </div>
         <br><br>
 
-        {% for match in fixtures_for_week %}
+
+    {% for match in fixtures_for_week %}
         <div class="flex justify-center mb-12">
             <div class="relative w-2/3">
                 <div class="w-full h-16 bg-gray-400 rounded-md flex items-center justify-between px-4">
                     <div class="flex items-center w-5/12 h-full"> 
-                
+                    
                     <img src="{{ match.home_team.logo.url }}" 
-                            alt="{{ match.home_team.name }} Logo" 
-                            class="h-12 w-12 object-contain flex-shrink-0">
+                                alt="{{ match.home_team.name }} Logo" 
+                                class="h-12 w-12 object-contain flex-shrink-0">
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <span class="font-bold text-sm text-black text-left ml-2 leading-tight">
                         {{ match.home_team.name }}
                     </span>
-                </div>
+                    </div>
 
-                <div class="w-2/12 flex justify-center flex-shrink-0">
-                    <span class="text-xl font-extrabold text-blue-900">VS</span>
-                </div>
+                    <div class="w-2/12 flex justify-center flex-shrink-0">
+                        {% if selected_post_type == 'results' %}
+                            <span class="text-xl font-extrabold text-blue-900">
+                                {{ match.home_score }} - {{ match.away_score }}
+                            </span>
+                        {% else %}
+                            <span class="text-xl font-extrabold text-blue-900">VS</span>
+                        {% endif %}
+                    </div>
 
-                <div class="flex items-center justify-end w-5/12 h-full"> 
-                    
-                    <span class="font-bold text-sm text-black text-right mr-2 leading-tight">
-                        {{ match.away_team.name }}
-                    </span>
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    <img src="{{ match.away_team.logo.url }}" 
-                            alt="{{ match.away_team.name }} Logo" 
-                            class="h-12 w-12 object-contain flex-shrink-0">
-                </div>
+                    <div class="flex items-center justify-end w-5/12 h-full"> 
+                        
+                        <span class="font-bold text-sm text-black text-right mr-2 leading-tight">
+                            {{ match.away_team.name }}
+                        </span>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <img src="{{ match.away_team.logo.url }}" 
+                                alt="{{ match.away_team.name }} Logo" 
+                                class="h-12 w-12 object-contain flex-shrink-0">
+                    </div>
                 </div>
 
 
@@ -95,9 +102,15 @@
             </div>
         </div>
         <br><br><br>
-        {% endfor %}
+    {% endfor %}
+
     </div>
 </div>
+{% else %}
+    <div class="flex justify-center my-12">
+        <span class="text-2xl font-bold text-gray-500">No results available for this week yet.</span>
+    </div>
+{% endif %}
 
 <script>
     /**

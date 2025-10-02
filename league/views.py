@@ -450,33 +450,30 @@ def stats_view(request):
         # Convert to list for template usage
         motm_list = list(motm_summary)
 
-           # ------------------------------------
+        # ------------------------------------
         # Team of the Week (TOTW) Logic - CORRECTED
         # ------------------------------------
-        
+
         # Define the fields that link to the Player model
         player_fields = [
-            "goal_keeper", "left_defence", "right_defence", 
-            "left_mid", "right_mid", "striker"
+            "goal_keeper",
+            "left_defence",
+            "right_defence",
+            "left_mid",
+            "right_mid",
+            "striker",
         ]
-        
+
         # Dictionary to hold the final aggregated data: {player_id: {data}}
         totw_aggregates = {}
 
         # 1. Gather all individual TOTW appearances across all positions
         for field in player_fields:
             # Query all entries where this position was filled for the selected tournament
-            position_entries = (
-                TeamOfTheWeek.objects.filter(
-                    tournament=selected_tournament,
-                    **{f'{field}__isnull': False}
-                )
-                .values_list(
-                    f'{field}__id', 
-                    'week_number', 
-                    f'{field}__name', 
-                    f'{field}__team__name'
-                )
+            position_entries = TeamOfTheWeek.objects.filter(
+                tournament=selected_tournament, **{f"{field}__isnull": False}
+            ).values_list(
+                f"{field}__id", "week_number", f"{field}__name", f"{field}__team__name"
             )
 
             # Manually aggregate the data in Python
@@ -488,9 +485,9 @@ def stats_view(request):
                         "player__name": player_name,
                         "player__team__name": player_team,
                         "total_totw_count": 0,
-                        "week_numbers": set() # Use set to store unique weeks efficiently
+                        "week_numbers": set(),  # Use set to store unique weeks efficiently
                     }
-                
+
                 # Update the aggregate count and weeks
                 totw_aggregates[player_id]["total_totw_count"] += 1
                 totw_aggregates[player_id]["week_numbers"].add(week_number)
@@ -506,7 +503,7 @@ def stats_view(request):
         team_of_the_week = sorted(
             team_of_the_week_unsorted,
             key=lambda x: (x["total_totw_count"], x["player__name"]),
-            reverse=True
+            reverse=True,
         )
 
     else:
@@ -824,11 +821,31 @@ def posts_view(request):
         str(selected_week_number) if selected_week_number is not None else None
     )
 
-    fixtures_for_week = Match.objects.filter(
-        tournament=context["selected_tournament"], week_number=selected_week_number
-    ).order_by("match_date", "match_time")
-    print(fixtures_for_week)
-    context["fixtures_for_week"] = fixtures_for_week
-    context["total_count"] = range(fixtures_for_week.count())
+    if selected_tournament and selected_week_number is not None:
+        base_query = Match.objects.filter(
+            tournament=selected_tournament, week_number=selected_week_number
+        )
 
+        if post_type == "results":
+            # Only include matches with a result (is_played=True or is_walkover=True)
+            matches_for_week = base_query.filter(
+                Q(is_played=True) | Q(is_walkover=True)
+            ).order_by("match_date", "match_time")
+
+            # If no matches have a result, the queryset is empty,
+            # and the template will display "N/A" by showing no match blocks.
+
+        else:  # post_type == "fixtures"
+            # For fixtures, show all matches for the week, played or not
+            matches_for_week = base_query.order_by("match_date", "match_time")
+
+    else:
+        matches_for_week = []  # Set to empty list if no tournament/week is selected
+
+    # 8. Set final context
+    context["fixtures_for_week"] = (
+        matches_for_week  # Use existing context key for template compatibility
+    )
+    context["total_count"] = range(len(matches_for_week))
+    print(matches_for_week)
     return render(request, "league/posts.html", context)
