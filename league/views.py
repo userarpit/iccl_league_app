@@ -33,7 +33,7 @@ def get_week_labels(tournament_id):
         week_labels[week_number] = (
             f"{week_number} - {match_date.strftime('%A, %d %B %Y')}"
         )
-
+    print(week_labels)
     return week_labels
 
 

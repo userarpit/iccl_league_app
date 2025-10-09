@@ -68,6 +68,7 @@ DEBUG = os.getenv("DJANGO_DEBUG") == "True"
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "iccl-league-app.onrender.com",
+    "frustrative-chantell-upbraidingly.ngrok-free.dev",
 ]
 
 # Application definition

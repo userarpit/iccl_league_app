@@ -1,5 +1,6 @@
 {% extends 'league/base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block content %}
 <h2 class="text-3xl font-bold text-gray-700 mb-6">✍️ Posts</h2>
@@ -33,9 +34,13 @@
         class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out">
         SHOW
     </button>
+    <button onclick="downloadScreenshot()"
+        class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+        DOWNLOAD
+    </button>
 </div>
 {% if fixtures_for_week %}
-<div class="p-6 rounded-lg shadow-md text-white relative"
+<div id="postContent" class="p-6 rounded-lg shadow-md text-white relative"
      style="background-image: url('{% static 'league/img/post_background.jpg' %}'); 
             background-size: cover; 
             background-position: center; 
@@ -46,77 +51,195 @@
     <div class="text-center">
         <img src="{% static 'league/img/White Logo.png' %}" alt="Top Image" class="mx-auto mb-6 h-20" />
 
-        <div class="text-2xl font-extrabold mb-6 text-white">
+        <div class="text-3xl font-extrabold mb-6 text-white">
             MATCH DAY {{selected_week_number}} {{selected_post_type|upper}}
         </div>
-        <br><br>
+        
+        {% if selected_post_type == 'fixtures' %}
+            {% for week_num, label in week_labels.items %}
+                {% if week_num|stringformat:"s" == selected_week_number|stringformat:"s" %}
+                    <div class="text-xl font-semibold mb-4 text-white">
+                        
+                        {% if selected_week_number|length == 1 %}
+                            {{ label|slice:"4:" }}
+                        {% else %}
+                            {{ label|slice:"5:" }}
+                        {% endif %}
+                        
+                    </div>
+                {% endif %}
+            {% endfor %}
+            <div class="text-lg font-semibold mb-1 text-white">
+                Venue - {{ venue }}
+            </div>
+            
+            <div class="text-lg font-bold mb-8 text-white flex items-center justify-center">
+                LIVE ON
+                <a href="https://youtube.com/@indorecitychampionsleague?si=a5NRBm6MmJtbXSWu" target="_blank" class="mx-2 flex items-center flex-shrink-0 text-white hover:text-red-500">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/YouTube_full-color_icon_%282017%29.svg/1280px-YouTube_full-color_icon_%282017%29.svg.png" alt="YouTube" class="w-5 h-5 object-contain mr-1 relative top-[1px]">
+                    @INDORECITYCHAMPIONSLEAGUE
+                </a> 
+            </div>
+            <br>
+        {% else %}
+            <br><br>
+        {% endif %}
 
+        {% for match in fixtures_for_week %}
+            <div class="flex justify-center mb-12">
+                <div class="relative w-4/5">
+                    <div class="w-full h-16 bg-gray-400 rounded-md flex items-center justify-between px-4">
+                        
+                        <div class="flex items-center w-5/12 h-full justify-start"> 
+                        
+                            <img src="{{ match.home_team.logo.url }}" 
+                                    alt="{{ match.home_team.name }} Logo" 
+                                    class="h-14 w-14 object-contain flex-shrink-0">
+                            
+                            <span class="font-bold text-xl text-black text-left ml-20 mr-10 leading-tight">
+                                {{ match.home_team.name }}
+                            </span>
+                        </div>
 
-    {% for match in fixtures_for_week %}
-        <div class="flex justify-center mb-12">
-            <div class="relative w-2/3">
-                <div class="w-full h-16 bg-gray-400 rounded-md flex items-center justify-between px-4">
-                    <div class="flex items-center w-5/12 h-full"> 
-                    
-                    <img src="{{ match.home_team.logo.url }}" 
-                                alt="{{ match.home_team.name }} Logo" 
-                                class="h-12 w-12 object-contain flex-shrink-0">
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                    <span class="font-bold text-sm text-black text-left ml-2 leading-tight">
-                        {{ match.home_team.name }}
-                    </span>
+                        <div class="w-2/12 flex justify-center flex-shrink-0">
+                            {% if selected_post_type == 'results' %}
+                                <span class="text-3xl font-extrabold text-blue-900">
+                                    {{ match.home_score }} - {{ match.away_score }}
+                                </span>
+                            {% else %}
+                                <span class="text-3xl font-extrabold text-blue-900">VS</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="flex items-center justify-between w-5/12 h-full"> 
+                            
+                            <span class="font-bold text-xl text-black text-left ml-10 leading-tight">
+                                {{ match.away_team.name }}
+                            </span>
+                            
+                            <img src="{{ match.away_team.logo.url }}" 
+                                    alt="{{ match.away_team.name }} Logo" 
+                                    class="h-14 w-14 object-contain flex-shrink-0 ml-20">
+                        </div>
                     </div>
 
-                    <div class="w-2/12 flex justify-center flex-shrink-0">
-                        {% if selected_post_type == 'results' %}
-                            <span class="text-xl font-extrabold text-blue-900">
-                                {{ match.home_score }} - {{ match.away_score }}
-                            </span>
-                        {% else %}
-                            <span class="text-xl font-extrabold text-blue-900">VS</span>
+                    <div class="absolute -top-10 left-0 w-full h-10 bg-blue-800 text-white text-xs px-6 flex items-center justify-between overflow-hidden"
+                        style="clip-path: polygon(0% 100%, 100% 100%, 90% 0%, 10% 0%);">
+                        
+                        {% if selected_post_type == 'results' and match.cards.all %}
+                            <div class="w-1/2 text-center flex flex-col justify-center h-full">
+                                {% for card in match.cards.all %}
+                                    {% if card.player.team == match.home_team %}
+                                        <div class="leading-none">
+                                            {{ card.player.name }}
+                                            {% if card.card_type == 'YELLOW' %}
+                                                <span class="text-yellow-400">🟨</span>
+                                            {% else %}
+                                                <span class="text-red-600">🟥</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            <div class="w-1/2 text-center flex flex-col justify-center h-full">
+                                {% for card in match.cards.all %}
+                                    {% if card.player.team == match.away_team %}
+                                        <div class="leading-none">
+                                            {{ card.player.name }}
+                                            {% if card.card_type == 'YELLOW' %}
+                                                <span class="text-yellow-400">🟨</span>
+                                            {% else %}
+                                                <span class="text-red-600">🟥</span>
+                                            {% endif %}
+                                            
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% elif selected_post_type == 'fixtures' %}
+                            <div class="w-full text-center text-sm font-bold">
+                                 {% if match.match_time %}
+                                    {{ match.match_time }} TO {{ match.match_time|add_minutes:40|time:"h:i A" }}
+                                {% else %}
+                                    TIME TBD
+                                {% endif %}
+                            </div>
                         {% endif %}
                     </div>
+                    <div class="absolute top-16 left-0 w-full h-10 bg-blue-800 text-white text-xs px-4 flex items-center justify-between overflow-hidden"
+                    style="clip-path: polygon(0% 0%, 100% 0%, 90% 100%, 10% 100%);">
+    
+                        {% if selected_post_type == 'results' %}
+                            {% with total_goals=match.home_score|add:match.away_score %}
 
-                    <div class="flex items-center justify-end w-5/12 h-full"> 
-                        
-                        <span class="font-bold text-sm text-black text-right mr-2 leading-tight">
-                            {{ match.away_team.name }}
-                        </span>
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        <img src="{{ match.away_team.logo.url }}" 
-                                alt="{{ match.away_team.name }} Logo" 
-                                class="h-12 w-12 object-contain flex-shrink-0">
+                                {% if total_goals > 10 %}
+                                    <div class="w-full text-center text-sm font-bold">
+                                        PLEASE VISIT WEBSITE FOR RESULTS
+                                    </div>
+                                {% elif match.goals.all %}
+                                    <div class="w-1/2 text-left flex flex-wrap justify-start h-full content-center py-1 pr-1 pl-36">
+                                        {% with home_goals=match.goals.all|slice:':' %}
+                                            {% for goal in home_goals %}
+                                                {% if goal.player.team == match.home_team and not goal.own_goal or goal.own_goal and goal.player.team == match.away_team %}
+                                                    
+                                                    {% if forloop.counter0 > 0 and forloop.counter0|divisibleby:3 %}
+                                                        <div class="w-full h-0"></div>
+                                                    {% endif %}
+                                                    
+                                                    <span class="whitespace-nowrap mr-2">
+                                                        {% if goal.own_goal %}
+                                                            <span class="text-red-300">{{ goal.player.name }} ({{ goal.goals }}) OG</span>
+                                                        {% else %}
+                                                            {{ goal.player.name }} ({{ goal.goals }})
+                                                        {% endif %}
+                                                    </span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endwith %}
+                                    </div>
+
+                                    <div class="w-1/2 text-left flex flex-wrap justify-start h-full content-center py-1 pl-28">
+                                        {% with away_goals=match.goals.all|slice:':' %}
+                                            {% for goal in away_goals %}
+                                                {% if goal.player.team == match.away_team and not goal.own_goal or goal.own_goal and goal.player.team == match.home_team %}
+                                                    
+                                                    {% if forloop.counter0 > 0 and forloop.counter0|divisibleby:3 %}
+                                                        <div class="w-full h-0"></div>
+                                                    {% endif %}
+
+                                                    <span class="whitespace-nowrap ml-2">
+                                                        {% if goal.own_goal %}
+                                                            <span class="text-red-300">{{ goal.player.name }} ({{ goal.goals }}) OG</span>
+                                                        {% else %}
+                                                            {{ goal.player.name }} ({{ goal.goals }})
+                                                        {% endif %}
+                                                    </span>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endwith %}
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        {% endif %}
                     </div>
                 </div>
-
-
-                <div class="absolute -top-10 left-0 w-full h-10 bg-blue-800"
-                    style="clip-path: polygon(0% 100%, 100% 100%, 90% 0%, 10% 0%);">
-                </div>
-
-                <div class="absolute top-16 left-0 w-full h-10 bg-blue-800"
-                    style="clip-path: polygon(0% 0%, 100% 0%, 90% 100%, 10% 100%);">
-                </div>
             </div>
-        </div>
-        <br><br><br>
-    {% endfor %}
-
+            <br><br><br>
+        {% endfor %}
     </div>
 </div>
 {% else %}
-    <div class="flex justify-center my-12">
+    <div class="flex justify-center my-3">
         <span class="text-2xl font-bold text-gray-500">No results available for this week yet.</span>
     </div>
 {% endif %}
 
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
 <script>
     /**
      * Executes when the "SHOW" button is clicked.
-     * Constructs a new URL with the selected type and week number as query parameters (GET request)
-     * and navigates to it, forcing Django's posts_view to re-render with the new data.
      */
     function showPosts() {
         // Get current values from dropdowns
@@ -140,6 +263,46 @@
 
         // Navigate to the new URL
         window.location.href = newUrl;
+    }
+    
+    /**
+     * Captures the contents of the 'postContent' div, converts it to a PNG image, 
+     * and triggers a download.
+     */
+    function downloadScreenshot() {
+        // 1. Get the HTML element to capture
+        const elementToCapture = document.getElementById('postContent');
+        
+        if (!elementToCapture) {
+            console.error('Element with ID "postContent" not found. Cannot download screenshot.');
+            return;
+        }
+
+        // 2. Configure and run html2canvas
+        html2canvas(elementToCapture, {
+            // Important: Increased scale to 6 to generate a high-resolution, large image.
+            useCORS: true,
+            scale: 6 
+        }).then(function(canvas) {
+            // 3. Convert the canvas image to a data URL (PNG format)
+            const image = canvas.toDataURL("image/png");
+
+            // 4. Create a temporary link element
+            const a = document.createElement('a');
+
+            // 5. Set the download filename
+            const postType = document.getElementById('post-type-select').value;
+            const weekNumber = document.getElementById('week-date-select').value;
+            a.download = `${postType}_week_${weekNumber}.png`;
+            
+            // 6. Set the image data as the link's target
+            a.href = image;
+
+            // 7. Simulate a click on the link to trigger the download
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        });
     }
 </script>
 
