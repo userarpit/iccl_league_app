@@ -5,13 +5,13 @@ from .models import Team_Standing, Match, Tournament
 from .models import VENUE, Card, Goal, Team, Player, TeamOfTheWeek, Sponsor
 import pandas as pd  # For the league table
 import requests
-import os
 from django.contrib.postgres.aggregates import ArrayAgg
 from .forms import PlayerImageForm
 from django.db import connection
 from django.db.models import Min
 from django.utils import timezone
 from django.db.models import Max
+from django.db.models.functions import ExtractMonth, ExtractDay
 
 
 def get_week_labels(tournament_id):
@@ -67,6 +67,32 @@ def get_base_context(active_tab, request):
     context["venue"] = VENUE
     context["active_tab"] = active_tab
     context["week_labels"] = get_week_labels(context["selected_tournament"])
+
+    today = timezone.now().date()
+
+    # 1. Find the maximum 'id' (latest team entry) for each player with a birthday today.
+    # We group by 'name' (the player) to find their latest record ID.
+    latest_record_ids = (
+        Player.objects.filter(
+            dob__month=ExtractMonth(today), dob__day=ExtractDay(today)
+        )
+        .values("name")
+        .annotate(latest_id=Max("id"))
+        .values_list("latest_id", flat=True)
+    )
+
+    # 2. Filter the Player records to include only those with the latest IDs found above.
+    # This ensures we only get the *current* team for each player.
+    birthday_players_data = Player.objects.filter(id__in=latest_record_ids).values_list(
+        "name", "team__name"
+    )
+
+    # 3. Format the data for the banner, combining name and team name.
+    # Since 'latest_record_ids' already ensures uniqueness per player,
+    # the resulting list will have unique player names with their latest team.
+    context["birthday_players"] = [
+        f"{name} ({team_name})" for name, team_name in birthday_players_data
+    ]
 
     return context
 

@@ -127,7 +127,7 @@ class Team(models.Model):
 class Player(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
-    
+    dob = models.DateField(null=True, blank=True)
     team = models.ForeignKey(Team, related_name="players", on_delete=models.CASCADE)
     tournament = models.ForeignKey(
         Tournament,

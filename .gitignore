@@ -10,7 +10,7 @@ __pycache__/
 *.pot
 *.sqlite3
 *.sqlite-journal
-
+player.csv
 # Virtual environments
 venv/
 env/

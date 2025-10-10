@@ -13,6 +13,16 @@
 </head>
 
 <body class="bg-gray-100 font-sans antialiased">
+
+ <!-- Birthday Banner -->
+    {% if birthday_players %}
+    <div id="birthday-banner" class="fixed top-0 left-3/4 transform -translate-x-1/2 bg-yellow-400 text-gray-900 font-semibold py-2 px-4 z-50 w-full overflow-hidden">
+        <div id="banner-text" class="inline-block whitespace-nowrap animate-marquee">
+            🎉 Happy Birthday to {{ birthday_players|join:", " }}! 🎂
+        </div>
+    </div>
+    {% endif %}
+
     <div class="min-h-screen flex">
         <aside id="sidebar" class="w-64 bg-gradient-to-b from-gray-900 to-blue-900 text-white p-6 shadow-lg transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-50 fixed inset-y-0 left-0 overflow-y-auto flex flex-col">
             <a href="/" class="flex items-center justify-center space-x-2 text-yellow-300 font-bold mb-8 hidden md:flex mt-3">
@@ -114,8 +124,9 @@
             </header>
             
             <main class="p-4 md:p-8">
+                <br>
                 <div class="flex items-start justify-between">
-                    <div>
+                    <div>    
                         <h1 class="text-2xl md:text-4xl font-extrabold text-gray-800">
                             🏆 {{selected_tournament.short_description}} - {{selected_tournament.long_description}}
                         </h1>
