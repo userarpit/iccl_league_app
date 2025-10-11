@@ -10,21 +10,76 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'league/css/style.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
+
+    <!-- ✅ Fixes for banner + mobile visibility -->
+    <style>
+        /* Marquee animation */
+        @keyframes marquee {
+            0% {
+                transform: translateX(100%);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        .animate-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 15s linear infinite;
+        }
+
+        @media (max-width: 768px) {
+            #birthday-banner {
+                position: fixed;
+                top: 0;
+                z-index: 40; /* below header */
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Allow horizontal scroll via swipe */
+            #banner-text {
+                display: inline-block;
+                white-space: nowrap;
+                padding-right: 2rem;
+            }
+
+            header {
+                position: relative;
+                z-index: 50; /* header above banner */
+            }
+
+            body {
+                padding-top: 45px; /* push content below banner */
+            }
+
+            /* Disable marquee animation on mobile — use scroll instead */
+            @media (pointer: coarse) {
+                .animate-marquee {
+                    animation: none;
+                }
+            }
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 font-sans antialiased">
 
- <!-- Birthday Banner -->
+    <!-- Birthday Banner -->
     {% if birthday_players %}
-    <div id="birthday-banner" class="fixed top-0 left-3/4 transform -translate-x-1/2 bg-yellow-400 text-gray-900 font-semibold py-2 px-4 z-50 w-full overflow-hidden">
+    <div id="birthday-banner"
+        class="fixed top-0 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-gray-900 font-semibold py-2 px-4 w-full z-40 overflow-x-auto">
         <div id="banner-text" class="inline-block whitespace-nowrap animate-marquee">
-            🎉 Happy Birthday to {{ birthday_players|join:", " }}! 🎂
+            🎉 Happy Birthday to {{ birthday_players|join:", " }} — from Team {{ selected_tournament.short_description }}! 🎂
         </div>
     </div>
     {% endif %}
 
     <div class="min-h-screen flex">
-        <aside id="sidebar" class="w-64 bg-gradient-to-b from-gray-900 to-blue-900 text-white p-6 shadow-lg transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-50 fixed inset-y-0 left-0 overflow-y-auto flex flex-col">
+        <aside id="sidebar"
+            class="w-64 bg-gradient-to-b from-gray-900 to-blue-900 text-white p-6 shadow-lg transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-50 fixed inset-y-0 left-0 overflow-y-auto flex flex-col">
             <a href="/" class="flex items-center justify-center space-x-2 text-yellow-300 font-bold mb-8 hidden md:flex mt-3">
                 <img src="{% static 'league/img/White & Red.png' %}" alt="ICCL Logo" class="h-16">
             </a>
@@ -35,15 +90,16 @@
                             Select Tournament:
                         </label>
                         <select id="tournament-select"
-                                onchange="navigateToTournament(this.value)"
-                                class="block w-full px-4 py-2 rounded-lg text-gray-900 bg-green-400 font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            onchange="navigateToTournament(this.value)"
+                            class="block w-full px-4 py-2 rounded-lg text-gray-900 bg-green-400 font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
                             {% for tournament in tournaments %}
-                                <option value="{{ tournament.id }}" {% if tournament.id == selected_tournament.id %}selected{% endif %}>
-                                    {{ tournament.short_description }}
-                                </option>
+                            <option value="{{ tournament.id }}" {% if tournament.id == selected_tournament.id %}selected{% endif %}>
+                                {{ tournament.short_description }}
+                            </option>
                             {% endfor %}
                         </select>
                     </li>
+
                     <li class="mb-4">
                         <a href="{% url 'sponsors' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Sponsors' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
@@ -57,45 +113,44 @@
                             📅 Fixture
                         </a>
                     </li>
+
                     <li class="mb-4">
                         <a href="{% url 'results' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Result' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             ⚽ Result
                         </a>
                     </li>
+
                     <li class="mb-4">
                         <a href="{% url 'table' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Table' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             📊 Table
                         </a>
                     </li>
+
                     <li class="mb-4">
                         <a href="{% url 'team_of_the_week' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'TeamOfTheWeek' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             🌟 TOTW
                         </a>
                     </li>
+
                     <li class="mb-4">
                         <a href="{% url 'stats' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Stats' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             📈 Stats
                         </a>
                     </li>
+
                     <li class="mb-4">
                         <a href="{% url 'players' %}?tournament={{ selected_tournament.id }}"
                             class="block px-4 py-2 rounded-lg text-lg {% if active_tab == 'Players' %}bg-yellow-400 text-gray-900 font-semibold{% else %}hover:bg-blue-700{% endif %} transition-colors duration-200">
                             👤 Players
                         </a>
                     </li>
-                    <!-- <li class="mb-4">
-                        <a href="{% url 'posts' %}?tournament={{ selected_tournament.id }}"
-                            class="block px-4 py-2 rounded-lg text-md {% if active_tab == 'Posts' %}bg-yellow-300 text-gray-900 font-semibold{% else %}hover:bg-blue-600{% endif %} transition-colors duration-200">
-                            ✍️ Post
-                        </a>
-                    </li> -->
-
                 </ul>
             </nav>
+
             <footer class="mt-auto pt-8 text-center text-sm">
                 <p>&copy; 2025 ICCL. All Rights Reserved.</p>
                 <div class="flex items-center justify-center space-x-4 mt-4">
@@ -117,16 +172,18 @@
                     </a>
                 </h1>
                 <button id="menu-button" class="text-white focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16m-7 6h7"></path>
                     </svg>
                 </button>
             </header>
-            
+
             <main class="p-4 md:p-8">
                 <br>
                 <div class="flex items-start justify-between">
-                    <div>    
+                    <div>
                         <h1 class="text-2xl md:text-4xl font-extrabold text-gray-800">
                             🏆 {{selected_tournament.short_description}} - {{selected_tournament.long_description}}
                         </h1>
@@ -135,7 +192,7 @@
                         </p>
                     </div>
                     <a href="{% url 'admin:index' %}"
-                    class="inline-block px-4 py-2 rounded-lg text-sm md:text-lg hover:bg-blue-700 transition-colors duration-200">
+                        class="inline-block px-4 py-2 rounded-lg text-sm md:text-lg hover:bg-blue-700 transition-colors duration-200">
                         ⚙️ Admin
                     </a>
                 </div>
@@ -147,10 +204,10 @@
             </main>
         </div>
     </div>
-    
+
     <script>
         // JavaScript for mobile menu toggle
-        document.getElementById('menu-button').addEventListener('click', function() {
+        document.getElementById('menu-button').addEventListener('click', function () {
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('-translate-x-full');
         });
