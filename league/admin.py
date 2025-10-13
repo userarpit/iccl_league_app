@@ -95,7 +95,6 @@ class GoalInline(admin.TabularInline):
 
 @admin.register(Match)
 class MatchAdmin(TournamentAdminMixin, admin.ModelAdmin):
-    
     list_display = (
         "week_number",
         "match_date",
@@ -112,7 +111,6 @@ class MatchAdmin(TournamentAdminMixin, admin.ModelAdmin):
         "home_team",
         "away_team",
     )
-
 
     def get_fields(self, request, obj=None):
         return [
@@ -334,21 +332,43 @@ class TeamOfTheWeekAdmin(TournamentAdminMixin, admin.ModelAdmin):
         return initial
 
 
-# --- Signal-like functions moved here for use in save_related ---
 def _update_or_create_standing(match_instance):
     teams = [match_instance.home_team, match_instance.away_team]
-
+    print(teams)
     # Get the tournament from the match instance
     tournament_instance = match_instance.tournament
 
+    # --- MAPPING FOR NAME STRING CHANGE ---
+    # When processing the new team object (ID 13, "Sarco FC (Basic Boys)"),
+    # we need to look up the standing from the old name string ("Sarco FC (LUFC)").
+    NAME_CHANGE_MAP = {"Sarco FC (Basic Boys)": "Sarco FC (LUFC)"}
+    NEW_TEAM_ID = 13
+    NAME_CHANGE_WEEK = 16
+    # -------------------------------------
+
     for team in teams:
+        # Initial attempt to find a pre-existing standing entry for the current match/team
         standing_entry = Team_Standing.objects.filter(
-            match=match_instance, name=team
+            match=match_instance, name=team.name
         ).first()
 
+        # Determine the team name string to use for the previous standing lookup
+        team_name_for_previous_lookup = team.name
+
+        # Apply the mapping for the new team in the transition week
+        if (
+            match_instance.week_number == NAME_CHANGE_WEEK
+            and team.id == NEW_TEAM_ID
+            and team.name in NAME_CHANGE_MAP
+        ):
+            # For Team 13 in Week 16, look up the standing that used the old name string
+            team_name_for_previous_lookup = NAME_CHANGE_MAP[team.name]
+
+        # Retrieve previous standing using the determined name string
         previous_standing = (
             Team_Standing.objects.filter(
-                name=team, matches_played=(match_instance.week_number - 1)
+                name=team_name_for_previous_lookup,  # Use the name string for filtering
+                matches_played=(match_instance.week_number - 1),
             )
             .order_by("-id")
             .first()
@@ -357,13 +377,18 @@ def _update_or_create_standing(match_instance):
         new_data = _calculate_standing_data(match_instance, team, previous_standing)
 
         if standing_entry:
+            # Update existing entry
             for key, value in new_data.items():
                 setattr(standing_entry, key, value)
             standing_entry.tournament = tournament_instance
+            # Ensure the 'name' field holds the current name string ("Sarco FC (Basic Boys)")
+            standing_entry.name = team.name
             standing_entry.save()
         else:
+            # Create new entry
             Team_Standing.objects.create(
-                name=team,
+                # Use the current team's name string for the new entry
+                name=team.name,
                 match=match_instance,
                 tournament=tournament_instance,
                 **new_data,
